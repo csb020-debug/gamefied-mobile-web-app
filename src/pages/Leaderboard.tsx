@@ -3,6 +3,7 @@ import Footer from "../components/learning-companion/Footer";
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { AnimatedProgress } from "@/components/ui/AnimatedProgress";
  
 
 const Leaderboard: React.FC = () => {
@@ -151,12 +152,17 @@ const Leaderboard: React.FC = () => {
                 <h3 className="text-lg font-bold text-black mb-4">School Competition Progress</h3>
                 <div className="space-y-4">
                   <div>
-                    <div className="flex justify-between items-center mb-2">
-                      <span className="text-sm font-medium">Monthly Goal Progress</span>
+                    <AnimatedProgress
+                      value={8420}
+                      max={12000}
+                      label="Monthly Goal Progress"
+                      showGlow={true}
+                      color="bg-[#B8EE7C]"
+                      height="h-3"
+                      showPercentage={true}
+                    />
+                    <div className="text-center mt-2">
                       <span className="text-sm text-gray-600">8,420 / 12,000 points</span>
-                    </div>
-                    <div className="w-full bg-gray-200 rounded-full h-3">
-                      <div className="bg-[#B8EE7C] h-3 rounded-full" style={{ width: '70%' }}></div>
                     </div>
                   </div>
                   <div className="text-center pt-4">

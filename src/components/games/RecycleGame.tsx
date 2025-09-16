@@ -4,6 +4,7 @@ import { toast } from "sonner";
 import GameLayout from "@/components/games/GameLayout";
 import GameHUD from "@/components/games/GameHUD";
 import { useGameEngine } from "@/hooks/useGameEngine";
+import { AnimatedProgress } from "@/components/ui/AnimatedProgress";
 
 interface RecycleGameProps {
   onComplete: () => void;
@@ -123,14 +124,16 @@ const RecycleGame: React.FC<RecycleGameProps> = ({ onComplete }) => {
           ))}
         </div>
 
-        <div className="mt-8 text-center">
-          <div className="bg-gray-200 rounded-full h-4">
-            <div 
-              className="bg-[#B8EE7C] h-4 rounded-full transition-all duration-300"
-              style={{ width: `${((currentItem) / items.length) * 100}%` }}
-            />
-          </div>
-          <p className="text-sm text-gray-600 mt-2">Progress: {Math.round(((currentItem) / items.length) * 100)}%</p>
+        <div className="mt-8">
+          <AnimatedProgress
+            value={currentItem}
+            max={items.length}
+            label="Sorting Progress"
+            showGlow={true}
+            color="bg-[#B8EE7C]"
+            height="h-4"
+            showPercentage={true}
+          />
         </div>
       </Card>
     </GameLayout>

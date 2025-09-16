@@ -59,13 +59,13 @@ export const Footer: React.FC = () => {
                 <div className="bg-[#0A0E09] flex w-[120px] shrink-0 h-10 rounded-[5px]" />
               </a>
             </div>
-            <div className="justify-center items-center bg-[#333] flex min-h-8 w-[124px] max-w-full gap-2 text-[15px] text-white font-bold whitespace-nowrap leading-none mt-6 pl-3 pr-2 py-1.5 rounded-[28px]">
-              <div className="self-stretch my-auto">Eco Quest</div>
-              <img
-                src="/eco-quest-logo.png"
-                className="aspect-[1] object-contain w-4 self-stretch shrink-0 my-auto"
-                alt="Eco Quest logo"
-              />
+            <div className="justify-center items-center bg-[#333] flex min-h-8 w-[200px] max-w-full gap-2 text-[15px] text-white font-bold whitespace-nowrap leading-none mt-6 pl-3 pr-2 py-1.5 rounded-[28px]">
+              <div 
+                className="self-stretch my-auto text-black font-black uppercase text-sm"
+                style={{ fontFamily: 'Luckiest Guy, cursive' }}
+              >
+                ECO QUEST
+              </div>
             </div>
           </div>
           <div className="flex flex-col overflow-hidden items-stretch leading-[1.4] w-60">

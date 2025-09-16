@@ -90,7 +90,11 @@ const Profile: React.FC = () => {
                     <span>Progress to Level {userStats.level + 1}</span>
                     <span>{Math.round((userStats.currentXP / userStats.nextLevelXP) * 100)}%</span>
                   </div>
-                  <Progress value={(userStats.currentXP / userStats.nextLevelXP) * 100} className="h-3" />
+                  <Progress 
+                    value={(userStats.currentXP / userStats.nextLevelXP) * 100} 
+                    className="h-3" 
+                    showGlow={true}
+                  />
                 </div>
               </div>
             </div>

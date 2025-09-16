@@ -4,6 +4,7 @@ import { toast } from "sonner";
 import GameLayout from "@/components/games/GameLayout";
 import GameHUD from "@/components/games/GameHUD";
 import { useGameEngine } from "@/hooks/useGameEngine";
+import { AnimatedProgress } from "@/components/ui/AnimatedProgress";
 
 interface CarbonCalculatorProps {
   onComplete: () => void;
@@ -233,15 +234,15 @@ const CarbonCalculator: React.FC<CarbonCalculatorProps> = ({ onComplete }) => {
         </div>
 
         <div className="mt-8">
-          <div className="bg-gray-200 rounded-full h-4">
-            <div 
-              className="bg-[#B8EE7C] h-4 rounded-full transition-all duration-300"
-              style={{ width: `${(step / 4) * 100}%` }}
-            />
-          </div>
-          <p className="text-sm text-gray-600 mt-2 text-center">
-            Progress: {Math.round((step / 4) * 100)}%
-          </p>
+          <AnimatedProgress
+            value={step}
+            max={4}
+            label="Step Progress"
+            showGlow={true}
+            color="bg-[#B8EE7C]"
+            height="h-4"
+            showPercentage={true}
+          />
         </div>
       </Card>
     </GameLayout>

@@ -4,6 +4,7 @@ import { toast } from "sonner";
 import GameLayout from "@/components/games/GameLayout";
 import GameHUD from "@/components/games/GameHUD";
 import { useGameEngine } from "@/hooks/useGameEngine";
+import { AnimatedProgress } from "@/components/ui/AnimatedProgress";
 
 interface EnergyQuizProps {
   onComplete: () => void;
@@ -208,15 +209,15 @@ const EnergyQuiz: React.FC<EnergyQuizProps> = ({ onComplete }) => {
         </div>
 
         <div className="mt-8">
-          <div className="bg-gray-200 rounded-full h-4">
-            <div 
-              className="bg-[#B8EE7C] h-4 rounded-full transition-all duration-300"
-              style={{ width: `${((currentQuestion) / questions.length) * 100}%` }}
-            />
-          </div>
-          <p className="text-sm text-gray-600 mt-2 text-center">
-            Progress: {Math.round(((currentQuestion) / questions.length) * 100)}%
-          </p>
+          <AnimatedProgress
+            value={currentQuestion}
+            max={questions.length}
+            label="Quiz Progress"
+            showGlow={true}
+            color="bg-[#B8EE7C]"
+            height="h-4"
+            showPercentage={true}
+          />
         </div>
       </Card>
     </GameLayout>

@@ -19,14 +19,15 @@ export const Navbar: React.FC = () => {
   return (
     <nav className="fixed top-0 left-0 right-0 z-50 backdrop-blur-xl bg-white/10 border-b border-white/20 shadow-lg">
       <div className="max-w-7xl mx-auto px-6 lg:px-8">
-        <div className="flex items-center justify-between h-16">
+        <div className="flex items-center justify-between h-24">
           <Link to="/" className="flex-shrink-0">
-            <div className={`min-h-[56px] ${isMobile ? 'w-[140px]' : 'w-[200px]'} max-w-full`}>
-              <img
-                src="/eco-quest-logo.png"
-                className="aspect-[2.22] object-contain w-full"
-                alt="Eco Quest Logo"
-              />
+            <div className={`min-h-[100px] flex items-center ${isMobile ? 'w-[400px]' : 'w-[700px]'} max-w-full`}>
+              <h1 
+                className={`text-black font-black uppercase leading-none ${isMobile ? 'text-3xl' : 'text-5xl'}`}
+                style={{ fontFamily: 'Luckiest Guy, cursive' }}
+              >
+                ECO QUEST
+              </h1>
             </div>
           </Link>
           

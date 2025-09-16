@@ -364,14 +364,12 @@ export const StaggeredMenu: React.FC<StaggeredMenuProps> = ({
       </div>
       <header className="staggered-menu-header" aria-label="Main navigation header">
         <div className="sm-logo" aria-label="Logo">
-          <img
-            src={logoUrl || '/eco-quest-logo.png'}
-            alt="Logo"
-            className="sm-logo-img"
-            draggable={false}
-            width={110}
-            height={24}
-          />
+          <h1 
+            className="text-black font-black uppercase leading-none text-3xl"
+            style={{ fontFamily: 'Luckiest Guy, cursive' }}
+          >
+            ECO QUEST
+          </h1>
         </div>
         <button
           ref={toggleBtnRef}
