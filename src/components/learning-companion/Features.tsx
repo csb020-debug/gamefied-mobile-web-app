@@ -100,79 +100,43 @@ export const Features: React.FC = () => {
       <div className="w-full max-w-4xl mt-8">
         <ul className="stack-cards js-stack-cards">
           <li className="stack-cards__item bg-[#f2f2f2] rounded-2xl shadow-lg js-stack-cards__item">
-            <div className="flex items-center justify-between p-8 h-full">
-              <div className="flex-1">
-                <h3 className="text-[41px] font-black leading-none tracking-[-0.41px] text-[#0a0e09] mb-6">
-                  Interactive Lessons
-                </h3>
-                <p className="text-base font-light leading-[22px] tracking-[0.47px] text-[#0a0e09] mb-16">
-                  Learn environmental science through engaging interactive content and multimedia experiences.
-                </p>
-                <button className="bg-[#0a0e09] text-xs text-white font-bold px-4 py-2 rounded-full">
-                  Start learning
-                </button>
+            <a href="#" className="flex flex-col items-center bg-white border border-gray-200 rounded-lg shadow-sm md:flex-row w-full md:max-w-none overflow-hidden hover:bg-gray-100 dark:border-gray-700 dark:bg-gray-800 dark:hover:bg-gray-700">
+              <div className="flex flex-col justify-between p-4 leading-normal">
+                <h5 className="mb-2 text-2xl font-bold tracking-tight text-gray-900 dark:text-white">Interactive Lessons</h5>
+                <p className="mb-3 font-normal text-gray-700 dark:text-gray-400">Learn environmental science through engaging interactive content and multimedia experiences.</p>
               </div>
-              <div className="w-[232px] h-[200px] bg-gradient-to-br from-green-200 to-green-300 rounded-xl flex items-center justify-center">
-                <div className="text-4xl">🌱</div>
-              </div>
-            </div>
+              <img className="object-cover w-full rounded-b-lg h-48 md:h-full md:w-[360px] lg:w-[420px] md:rounded-none md:rounded-e-lg" src="/lesson.png" alt="Interactive Lessons" />
+            </a>
           </li>
 
           <li className="stack-cards__item bg-[#f2f2f2] rounded-2xl shadow-lg js-stack-cards__item">
-            <div className="flex items-center justify-between p-8 h-full">
-              <div className="flex-1">
-                <h3 className="text-[41px] font-black leading-none tracking-[-0.41px] text-[#0a0e09] mb-6">
-                  Eco Challenges
-                </h3>
-                <p className="text-base font-light leading-[22px] tracking-[0.47px] text-[#0a0e09] mb-16">
-                  Complete real-world environmental tasks like tree planting, waste segregation, and green actions.
-                </p>
-                <button className="bg-[#0a0e09] text-xs text-white font-bold px-4 py-2 rounded-full">
-                  Take challenge
-                </button>
+            <a href="#" className="flex flex-col items-center bg-white border border-gray-200 rounded-lg shadow-sm md:flex-row w-full md:max-w-none overflow-hidden hover:bg-gray-100 dark:border-gray-700 dark:bg-gray-800 dark:hover:bg-gray-700">
+              <div className="flex flex-col justify-between p-4 leading-normal">
+                <h5 className="mb-2 text-2xl font-bold tracking-tight text-gray-900 dark:text-white">Eco Challenges</h5>
+                <p className="mb-3 font-normal text-gray-700 dark:text-gray-400">Complete real-world environmental tasks like tree planting, waste segregation, and green actions.</p>
               </div>
-              <div className="w-[232px] h-[200px] bg-gradient-to-br from-blue-200 to-blue-300 rounded-xl flex items-center justify-center">
-                <div className="text-4xl">🌍</div>
-              </div>
-            </div>
+              <img className="object-cover w-full rounded-b-lg h-48 md:h-full md:w-[360px] lg:w-[420px] md:rounded-none md:rounded-e-lg" src="/task1.png" alt="Eco Challenges" />
+            </a>
           </li>
 
           <li className="stack-cards__item bg-[#f2f2f2] rounded-2xl shadow-lg js-stack-cards__item">
-            <div className="flex items-center justify-between p-8 h-full">
-              <div className="flex-1">
-                <h3 className="text-[41px] font-black leading-none tracking-[-0.41px] text-[#0a0e09] mb-6">
-                  Green Quizzes
-                </h3>
-                <p className="text-base font-light leading-[22px] tracking-[0.47px] text-[#0a0e09] mb-16">
-                  Test your environmental knowledge with gamified quizzes and earn eco-points for each correct answer.
-                </p>
-                <button className="bg-[#0a0e09] text-xs text-white font-bold px-4 py-2 rounded-full">
-                  Take quiz
-                </button>
+            <a href="#" className="flex flex-col items-center bg-white border border-gray-200 rounded-lg shadow-sm md:flex-row w-full md:max-w-none overflow-hidden hover:bg-gray-100 dark:border-gray-700 dark:bg-gray-800 dark:hover:bg-gray-700">
+              <div className="flex flex-col justify-between p-4 leading-normal">
+                <h5 className="mb-2 text-2xl font-bold tracking-tight text-gray-900 dark:text-white">Green Quizzes</h5>
+                <p className="mb-3 font-normal text-gray-700 dark:text-gray-400">Test your environmental knowledge with gamified quizzes and earn eco-points for each correct answer.</p>
               </div>
-              <div className="w-[232px] h-[200px] bg-gradient-to-br from-yellow-200 to-yellow-300 rounded-xl flex items-center justify-center">
-                <div className="text-4xl">🧠</div>
-              </div>
-            </div>
+              <img className="object-cover w-full rounded-b-lg h-48 md:h-full md:w-[360px] lg:w-[420px] md:rounded-none md:rounded-e-lg" src="/task2.png" alt="Green Quizzes" />
+            </a>
           </li>
 
           <li className="stack-cards__item bg-[#f2f2f2] rounded-2xl shadow-lg js-stack-cards__item">
-            <div className="flex items-center justify-between p-8 h-full">
-              <div className="flex-1">
-                <h3 className="text-[41px] font-black leading-none tracking-[-0.41px] text-[#0a0e09] mb-6">
-                  Eco Rewards
-                </h3>
-                <p className="text-base font-light leading-[22px] tracking-[0.47px] text-[#0a0e09] mb-16">
-                  Earn digital badges, recognition, and compete with schools through sustainable practice tracking.
-                </p>
-                <button className="bg-[#0a0e09] text-xs text-white font-bold px-4 py-2 rounded-full">
-                  View rewards
-                </button>
+            <a href="#" className="flex flex-col items-center bg-white border border-gray-200 rounded-lg shadow-sm md:flex-row w-full md:max-w-none overflow-hidden hover:bg-gray-100 dark:border-gray-700 dark:bg-gray-800 dark:hover:bg-gray-700">
+              <div className="flex flex-col justify-between p-4 leading-normal">
+                <h5 className="mb-2 text-2xl font-bold tracking-tight text-gray-900 dark:text-white">Eco Rewards</h5>
+                <p className="mb-3 font-normal text-gray-700 dark:text-gray-400">Earn digital badges, recognition, and compete with schools through sustainable practice tracking.</p>
               </div>
-              <div className="w-[232px] h-[200px] bg-gradient-to-br from-purple-200 to-purple-300 rounded-xl flex items-center justify-center">
-                <div className="text-4xl">🏆</div>
-              </div>
-            </div>
+              <img className="object-cover w-full rounded-b-lg h-48 md:h-full md:w-[360px] lg:w-[420px] md:rounded-none md:rounded-e-lg" src="/task3.png" alt="Eco Rewards" />
+            </a>
           </li>
         </ul>
       </div>

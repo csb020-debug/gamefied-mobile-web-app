@@ -1,10 +1,9 @@
 import React from "react";
-import StaggeredMenu from "../components/ui/StaggeredMenu";
 import Footer from "../components/learning-companion/Footer";
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
-import { menuItems, socialItems } from "../components/ui/MenuData";
+ 
 
 const Learn: React.FC = () => {
   const lessons = [
@@ -52,21 +51,6 @@ const Learn: React.FC = () => {
 
   return (
     <div className="min-h-screen bg-white relative">
-      <StaggeredMenu
-        position="right"
-        items={menuItems}
-        socialItems={socialItems}
-        displaySocials={true}
-        displayItemNumbering={true}
-        menuButtonColor="#0A0E09"
-        openMenuButtonColor="#fff"
-        changeMenuColorOnOpen={true}
-        colors={['#B19EEF', '#5227FF']}
-        logoUrl="https://cdn.builder.io/api/v1/image/assets/TEMP/5649d9f7037e46bfb785405d17b2e6b707bf0d6d?placeholderIfAbsent=true"
-        accentColor="#ff6b6b"
-        onMenuOpen={() => console.log('Menu opened')}
-        onMenuClose={() => console.log('Menu closed')}
-      />
       <main className="flex-1 py-10">
       <div className="max-w-6xl mx-auto">
           <div className="text-center mb-12">

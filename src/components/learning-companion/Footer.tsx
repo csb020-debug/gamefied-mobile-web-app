@@ -60,11 +60,11 @@ export const Footer: React.FC = () => {
               </a>
             </div>
             <div className="justify-center items-center bg-[#333] flex min-h-8 w-[124px] max-w-full gap-2 text-[15px] text-white font-bold whitespace-nowrap leading-none mt-6 pl-3 pr-2 py-1.5 rounded-[28px]">
-              <div className="self-stretch my-auto">Brainly.com</div>
+              <div className="self-stretch my-auto">Eco Quest</div>
               <img
-                src="https://cdn.builder.io/api/v1/image/assets/TEMP/e912f18395f94da4d24d6a6ad9a4fde4fe6619ee?placeholderIfAbsent=true"
+                src="/eco-quest-logo.png"
                 className="aspect-[1] object-contain w-4 self-stretch shrink-0 my-auto"
-                alt="Dropdown icon"
+                alt="Eco Quest logo"
               />
             </div>
           </div>
@@ -101,16 +101,16 @@ export const Footer: React.FC = () => {
             <div className="text-white text-sm font-bold">Community</div>
             <nav className="text-xs text-[#bababa] font-normal mt-3">
               <a href="#" className="block hover:text-white">
-                Brainly Community
+                Eco Quest Community
               </a>
               <a href="#" className="block mt-2 hover:text-white">
-                Brainly for Schools & Teachers
+                Eco Quest for Schools & Teachers
               </a>
               <a href="#" className="block mt-2 hover:text-white">
-                Brainly for Parents
+                Eco Quest for Parents
               </a>
               <a href="#" className="block mt-2 hover:text-white">
-                Brainly Scholarships
+                Eco Quest Scholarships
               </a>
               <a href="#" className="block mt-2 hover:text-white">
                 Honor Code
@@ -119,7 +119,7 @@ export const Footer: React.FC = () => {
                 Community Guidelines
               </a>
               <a href="#" className="block mt-2 hover:text-white">
-                Insights: The Brainly Blog
+                Insights: The Eco Quest Blog
               </a>
               <a href="#" className="block mt-2 hover:text-white">
                 Become a Volunteer

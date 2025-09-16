@@ -21,11 +21,11 @@ export const Navbar: React.FC = () => {
       <div className="max-w-7xl mx-auto px-6 lg:px-8">
         <div className="flex items-center justify-between h-16">
           <Link to="/" className="flex-shrink-0">
-            <div className={`min-h-[40px] ${isMobile ? 'w-[100px]' : 'w-[140px]'} max-w-full`}>
+            <div className={`min-h-[56px] ${isMobile ? 'w-[140px]' : 'w-[200px]'} max-w-full`}>
               <img
-                src="https://cdn.builder.io/api/v1/image/assets/TEMP/5649d9f7037e46bfb785405d17b2e6b707bf0d6d?placeholderIfAbsent=true"
+                src="/eco-quest-logo.png"
                 className="aspect-[2.22] object-contain w-full"
-                alt="EcoLearn Platform Logo"
+                alt="Eco Quest Logo"
               />
             </div>
           </Link>
