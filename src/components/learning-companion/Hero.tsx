@@ -1,6 +1,7 @@
 
 import React from "react";
 import CTAButton from "./CTAButton";
+import ThreeDCardDemo from "@/components/3d-card-demo";
 
 export const Hero: React.FC = () => {
   return (
@@ -21,18 +22,9 @@ export const Hero: React.FC = () => {
         <div className="mb-12">
           <CTAButton text="Start your eco journey" />
         </div>
-      </div>
-      <div className="relative flex items-center justify-center w-full max-w-5xl mx-auto">
-        <img
-          src="https://cdn.builder.io/api/v1/image/assets/TEMP/1c15c27aedcd3bfe4c8f891c6ef84b181bd0e44b?placeholderIfAbsent=true"
-          className="aspect-[162/91] object-contain w-full max-w-[810px] shadow-[0px_8px_32px_0px_rgba(50,60,69,0.20)] rounded-lg"
-          alt="Learning Companion Interface"
-        />
-        <img
-          src="https://cdn.builder.io/api/v1/image/assets/TEMP/95683470c2d24d23e37460716549bd413c09de9b?placeholderIfAbsent=true"
-          className="aspect-[1] object-contain w-[183px] absolute z-10 shrink-0 h-[183px] rounded-[11px] right-0 top-1/2 transform -translate-y-1/2 translate-x-16 max-md:hidden"
-          alt="Feature highlight"
-        />
+        <div className="mb-16">
+          <ThreeDCardDemo />
+        </div>
       </div>
     </div>
   );

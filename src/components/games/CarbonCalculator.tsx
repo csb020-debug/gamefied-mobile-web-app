@@ -1,12 +1,16 @@
 import React, { useState } from "react";
 import { Card } from "@/components/ui/card";
 import { toast } from "sonner";
+import GameLayout from "@/components/games/GameLayout";
+import GameHUD from "@/components/games/GameHUD";
+import { useGameEngine } from "@/hooks/useGameEngine";
 
 interface CarbonCalculatorProps {
   onComplete: () => void;
 }
 
 const CarbonCalculator: React.FC<CarbonCalculatorProps> = ({ onComplete }) => {
+  const engine = useGameEngine({ initialLives: 3, initialScore: 0, autoStart: true });
   const [step, setStep] = useState(1);
   const [data, setData] = useState({
     transport: 0,
@@ -79,15 +83,17 @@ const CarbonCalculator: React.FC<CarbonCalculatorProps> = ({ onComplete }) => {
       ];
     }
 
+    const points = Math.max(100 - Math.round(total * 10), 20);
+    engine.addPoints(points);
     setResults({
       daily: dailyTotal.toFixed(1),
       annual: annualTotal.toFixed(0),
       rating,
       tips,
-      points: Math.max(100 - Math.round(total * 10), 20)
+      points
     });
 
-    toast.success(`Calculation complete! You earned ${Math.max(100 - Math.round(total * 10), 20)} eco-points!`);
+    toast.success(`Calculation complete! You earned ${points} eco-points!`);
   };
 
   const resetCalculator = () => {
@@ -98,55 +104,59 @@ const CarbonCalculator: React.FC<CarbonCalculatorProps> = ({ onComplete }) => {
 
   if (results) {
     return (
-      <Card className="p-8 max-w-3xl mx-auto">
-        <div className="text-center mb-8">
-          <h2 className="text-3xl font-bold text-black mb-4">🌍 Your Carbon Footprint</h2>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
-            <div className="bg-[rgba(242,242,242,1)] p-6 rounded-xl">
-              <div className="text-2xl font-bold text-[#B8EE7C]">{results.daily} kg CO₂</div>
-              <div className="text-gray-600">Daily Footprint</div>
+      <GameLayout
+        hud={<GameHUD score={engine.score} streak={engine.streak} lives={engine.lives} maxLives={engine.maxLives} onReset={resetCalculator} />}
+      >
+        <Card className="p-8 w-full">
+          <div className="text-center mb-8">
+            <h2 className="text-3xl font-bold text-black mb-4">🌍 Your Carbon Footprint</h2>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
+              <div className="bg-[rgba(242,242,242,1)] p-6 rounded-xl">
+                <div className="text-2xl font-bold text-[#B8EE7C]">{results.daily} kg CO₂</div>
+                <div className="text-gray-600">Daily Footprint</div>
+              </div>
+              <div className="bg-[rgba(242,242,242,1)] p-6 rounded-xl">
+                <div className="text-2xl font-bold text-[#B8EE7C]">{results.annual} kg CO₂</div>
+                <div className="text-gray-600">Annual Footprint</div>
+              </div>
             </div>
-            <div className="bg-[rgba(242,242,242,1)] p-6 rounded-xl">
-              <div className="text-2xl font-bold text-[#B8EE7C]">{results.annual} kg CO₂</div>
-              <div className="text-gray-600">Annual Footprint</div>
+            
+            <div className="text-xl font-semibold mb-4">{results.rating}</div>
+            <div className="text-lg text-[#B8EE7C] font-bold mb-6">
+              🌿 +{results.points} Eco-Points Earned!
             </div>
           </div>
-          
-          <div className="text-xl font-semibold mb-4">{results.rating}</div>
-          <div className="text-lg text-[#B8EE7C] font-bold mb-6">
-            🌿 +{results.points} Eco-Points Earned!
-          </div>
-        </div>
 
-        <div className="mb-8">
-          <h3 className="text-xl font-bold text-black mb-4">💡 Reduction Tips</h3>
-          <ul className="space-y-2">
-            {results.tips.map((tip: string, index: number) => (
-              <li key={index} className="flex items-start gap-2">
-                <span className="text-[#B8EE7C] mt-1">•</span>
-                <span className="text-gray-700">{tip}</span>
-              </li>
-            ))}
-          </ul>
-        </div>
-
-        <div className="text-center">
-          <div className="flex gap-4 justify-center">
-            <button
-              onClick={resetCalculator}
-              className="bg-[#B8EE7C] text-[#0A0E09] font-bold py-3 px-6 rounded-lg hover:bg-[#96EE60] transition-colors"
-            >
-              Calculate Again
-            </button>
-            <button
-              onClick={onComplete}
-              className="bg-gray-200 text-gray-800 font-bold py-3 px-6 rounded-lg hover:bg-gray-300 transition-colors"
-            >
-              Back to Games
-            </button>
+          <div className="mb-8">
+            <h3 className="text-xl font-bold text-black mb-4">💡 Reduction Tips</h3>
+            <ul className="space-y-2">
+              {results.tips.map((tip: string, index: number) => (
+                <li key={index} className="flex items-start gap-2">
+                  <span className="text-[#B8EE7C] mt-1">•</span>
+                  <span className="text-gray-700">{tip}</span>
+                </li>
+              ))}
+            </ul>
           </div>
-        </div>
-      </Card>
+
+          <div className="text-center">
+            <div className="flex gap-4 justify-center">
+              <button
+                onClick={resetCalculator}
+                className="bg-[#B8EE7C] text-[#0A0E09] font-bold py-3 px-6 rounded-lg hover:bg-[#96EE60] transition-colors"
+              >
+                Calculate Again
+              </button>
+              <button
+                onClick={onComplete}
+                className="bg-gray-200 text-gray-800 font-bold py-3 px-6 rounded-lg hover:bg-gray-300 transition-colors"
+              >
+                Back to Games
+              </button>
+            </div>
+          </div>
+        </Card>
+      </GameLayout>
     );
   }
 
@@ -158,8 +168,10 @@ const CarbonCalculator: React.FC<CarbonCalculatorProps> = ({ onComplete }) => {
   }[step];
 
   return (
-    <div className="max-w-3xl mx-auto">
-      <Card className="p-8">
+    <GameLayout
+      hud={<GameHUD score={engine.score} streak={engine.streak} lives={engine.lives} maxLives={engine.maxLives} onReset={resetCalculator} />}
+    >
+      <Card className="p-8 w-full">
         <div className="text-center mb-8">
           <h2 className="text-2xl font-bold text-black mb-2">🌍 Carbon Footprint Calculator</h2>
           <p className="text-gray-600">Calculate your daily environmental impact</p>
@@ -232,7 +244,7 @@ const CarbonCalculator: React.FC<CarbonCalculatorProps> = ({ onComplete }) => {
           </p>
         </div>
       </Card>
-    </div>
+    </GameLayout>
   );
 };
 

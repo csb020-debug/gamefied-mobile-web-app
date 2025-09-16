@@ -1,6 +1,9 @@
 import React, { useState } from "react";
 import { Card } from "@/components/ui/card";
 import { toast } from "sonner";
+import GameLayout from "@/components/games/GameLayout";
+import GameHUD from "@/components/games/GameHUD";
+import { useGameEngine } from "@/hooks/useGameEngine";
 
 interface EnergyQuizProps {
   onComplete: () => void;
@@ -8,10 +11,10 @@ interface EnergyQuizProps {
 
 const EnergyQuiz: React.FC<EnergyQuizProps> = ({ onComplete }) => {
   const [currentQuestion, setCurrentQuestion] = useState(0);
-  const [score, setScore] = useState(0);
   const [selectedAnswer, setSelectedAnswer] = useState<number | null>(null);
   const [showResult, setShowResult] = useState(false);
   const [quizComplete, setQuizComplete] = useState(false);
+  const engine = useGameEngine({ initialLives: 3, initialScore: 0, autoStart: true });
 
   const questions = [
     {
@@ -62,9 +65,10 @@ const EnergyQuiz: React.FC<EnergyQuizProps> = ({ onComplete }) => {
     setShowResult(true);
 
     if (isCorrect) {
-      setScore(score + 15);
+      engine.addPoints(15);
       toast.success("Correct! +15 points");
     } else {
+      engine.miss();
       toast.error("Incorrect. Keep learning!");
     }
   };
@@ -81,53 +85,60 @@ const EnergyQuiz: React.FC<EnergyQuizProps> = ({ onComplete }) => {
 
   const resetQuiz = () => {
     setCurrentQuestion(0);
-    setScore(0);
     setSelectedAnswer(null);
     setShowResult(false);
     setQuizComplete(false);
+    engine.reset();
   };
 
   if (quizComplete) {
-    const percentage = Math.round((score / (questions.length * 15)) * 100);
+    const totalPossible = questions.length * 15;
+    const percentage = Math.round(((engine.score) / totalPossible) * 100);
     return (
-      <Card className="p-8 text-center max-w-2xl mx-auto">
-        <h2 className="text-3xl font-bold text-black mb-4">⚡ Quiz Complete!</h2>
-        <div className="text-6xl mb-4">🎯</div>
-        <p className="text-xl mb-2">Final Score: <span className="font-bold text-[#B8EE7C]">{score}</span> points</p>
-        <p className="text-lg mb-4">Accuracy: {percentage}%</p>
-        <p className="text-gray-600 mb-6">
-          {percentage >= 80 ? "Excellent! You're an energy expert! 🌟" :
-           percentage >= 60 ? "Good job! Keep learning about renewable energy! 👍" :
-           "Keep studying! Every expert was once a beginner! 📚"}
-        </p>
-        <div className="flex gap-4 justify-center">
-          <button
-            onClick={resetQuiz}
-            className="bg-[#B8EE7C] text-[#0A0E09] font-bold py-3 px-6 rounded-lg hover:bg-[#96EE60] transition-colors"
-          >
-            Retake Quiz
-          </button>
-          <button
-            onClick={onComplete}
-            className="bg-gray-200 text-gray-800 font-bold py-3 px-6 rounded-lg hover:bg-gray-300 transition-colors"
-          >
-            Back to Games
-          </button>
-        </div>
-      </Card>
+      <GameLayout
+        hud={<GameHUD score={engine.score} streak={engine.streak} lives={engine.lives} maxLives={engine.maxLives} onReset={resetQuiz} />}
+      >
+        <Card className="p-8 text-center w-full">
+          <h2 className="text-3xl font-bold text-black mb-4">⚡ Quiz Complete!</h2>
+          <div className="text-6xl mb-4">🎯</div>
+          <p className="text-xl mb-2">Final Score: <span className="font-bold text-[#B8EE7C]">{engine.score}</span> points</p>
+          <p className="text-lg mb-4">Accuracy: {percentage}%</p>
+          <p className="text-gray-600 mb-6">
+            {percentage >= 80 ? "Excellent! You're an energy expert! 🌟" :
+             percentage >= 60 ? "Good job! Keep learning about renewable energy! 👍" :
+             "Keep studying! Every expert was once a beginner! 📚"}
+          </p>
+          <div className="flex gap-4 justify-center">
+            <button
+              onClick={resetQuiz}
+              className="bg-[#B8EE7C] text-[#0A0E09] font-bold py-3 px-6 rounded-lg hover:bg-[#96EE60] transition-colors"
+            >
+              Retake Quiz
+            </button>
+            <button
+              onClick={onComplete}
+              className="bg-gray-200 text-gray-800 font-bold py-3 px-6 rounded-lg hover:bg-gray-300 transition-colors"
+            >
+              Back to Games
+            </button>
+          </div>
+        </Card>
+      </GameLayout>
     );
   }
 
   const question = questions[currentQuestion];
 
   return (
-    <div className="max-w-3xl mx-auto">
-      <Card className="p-8">
+    <GameLayout
+      hud={<GameHUD score={engine.score} streak={engine.streak} lives={engine.lives} maxLives={engine.maxLives} onReset={resetQuiz} />}
+    >
+      <Card className="p-8 w-full">
         <div className="text-center mb-8">
           <h2 className="text-2xl font-bold text-black mb-2">⚡ Renewable Energy Quiz</h2>
           <p className="text-gray-600">Test your knowledge about clean energy!</p>
           <div className="flex justify-between items-center mt-4">
-            <span className="text-lg font-semibold">Score: {score}</span>
+            <span className="text-lg font-semibold">Score: {engine.score}</span>
             <span className="text-lg font-semibold">Question {currentQuestion + 1}/{questions.length}</span>
           </div>
         </div>
@@ -208,7 +219,7 @@ const EnergyQuiz: React.FC<EnergyQuizProps> = ({ onComplete }) => {
           </p>
         </div>
       </Card>
-    </div>
+    </GameLayout>
   );
 };
 

@@ -1,8 +1,8 @@
 import React from "react";
 import Footer from "../components/learning-companion/Footer";
 import { Card } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
+import { BentoGrid, BentoGridItem } from "@/components/ui/bento-grid";
  
 
 const Profile: React.FC = () => {
@@ -47,23 +47,23 @@ const Profile: React.FC = () => {
   return (
     <div className="min-h-screen bg-white relative">
       <main className="flex-1 py-10">
-      <div className="max-w-6xl mx-auto">
+      <div className="max-w-7xl mx-auto px-6 lg:px-8">
           {/* Profile Header */}
-          <Card className="p-8 mb-8">
+          <Card className="p-8 mb-10 shadow-lg border border-black/5">
             <div className="flex flex-col md:flex-row items-start md:items-center gap-6">
               <div className="w-24 h-24 bg-[#B8EE7C] rounded-full flex items-center justify-center text-4xl font-bold text-[#0A0E09]">
                 {userStats.name.charAt(0)}
               </div>
               
               <div className="flex-1">
-                <h1 className="text-3xl font-bold text-black mb-2">{userStats.name}</h1>
+                <h1 className="text-3xl font-bold text-[#0A0E09] mb-2">{userStats.name}</h1>
                 <p className="text-gray-600 mb-4">{userStats.school} • {userStats.grade}</p>
                 
                 <div className="flex flex-wrap gap-4 mb-4">
                   <div className="flex items-center gap-2">
                     <span className="text-2xl">🏆</span>
                     <div>
-                      <div className="font-semibold text-black">Level {userStats.level}</div>
+                      <div className="font-semibold text-[#0A0E09]">Level {userStats.level}</div>
                       <div className="text-sm text-gray-600">{userStats.currentXP}/{userStats.nextLevelXP} XP</div>
                     </div>
                   </div>
@@ -71,7 +71,7 @@ const Profile: React.FC = () => {
                   <div className="flex items-center gap-2">
                     <span className="text-2xl">🌿</span>
                     <div>
-                      <div className="font-semibold text-[#B8EE7C]">{userStats.totalPoints}</div>
+                      <div className="font-semibold text-[#0A0E09]">{userStats.totalPoints}</div>
                       <div className="text-sm text-gray-600">Total Points</div>
                     </div>
                   </div>
@@ -96,102 +96,114 @@ const Profile: React.FC = () => {
             </div>
           </Card>
 
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-            {/* Badges Section */}
-            <Card className="p-6">
-              <h2 className="text-xl font-bold text-black mb-6">🏅 Eco Badges</h2>
-              <div className="grid grid-cols-2 gap-4">
-                {badges.map((badge, index) => (
-                  <div 
-                    key={index}
-                    className={`p-4 rounded-lg text-center transition-all ${
-                      badge.earned 
-                        ? 'bg-[#B8EE7C]/20 border-2 border-[#B8EE7C]' 
-                        : 'bg-gray-100 border-2 border-gray-200 opacity-60'
-                    }`}
-                  >
-                    <div className="text-3xl mb-2">{badge.icon}</div>
-                    <div className="font-semibold text-sm text-black">{badge.name}</div>
-                    <div className="text-xs text-gray-600 mt-1">{badge.description}</div>
-                    {badge.earned && (
-                      <div className="text-xs text-[#B8EE7C] font-bold mt-1">✓ EARNED</div>
-                    )}
-                  </div>
-                ))}
-              </div>
-            </Card>
-
-            {/* Recent Activity */}
-            <Card className="p-6">
-              <h2 className="text-xl font-bold text-black mb-6">📊 Recent Activity</h2>
-              <div className="space-y-4">
-                {recentActivities.map((activity, index) => (
-                  <div key={index} className="flex justify-between items-center py-2 border-b border-gray-100 last:border-0">
-                    <div>
-                      <div className="font-medium text-black text-sm">{activity.activity}</div>
-                      <div className="text-xs text-gray-600">{activity.date}</div>
-                    </div>
-                    <div className="font-bold text-[#B8EE7C]">+{activity.points}</div>
-                  </div>
-                ))}
-              </div>
-            </Card>
-
-            {/* Achievements */}
-            <Card className="p-6">
-              <h2 className="text-xl font-bold text-black mb-6">🎯 Achievements</h2>
-              <div className="space-y-3">
-                {achievements.map((achievement, index) => (
-                  <div key={index} className="flex items-center gap-3">
-                    <div className={`w-6 h-6 rounded-full flex items-center justify-center ${
-                      achievement.completed ? 'bg-[#B8EE7C]' : 'bg-gray-200'
-                    }`}>
-                      {achievement.completed && <span className="text-white text-sm">✓</span>}
-                    </div>
-                    <div className="flex-1">
-                      <div className={`font-medium text-sm ${achievement.completed ? 'text-black' : 'text-gray-500'}`}>
-                        {achievement.title}
+          <BentoGrid>
+            <BentoGridItem
+              title={"🏅 Eco Badges"}
+              header={(
+                <div className="pt-2">
+                  <div className="grid grid-cols-2 gap-4">
+                    {badges.map((badge, index) => (
+                      <div
+                        key={index}
+                        className={`p-4 rounded-xl text-center transition-all ring-1 ${
+                          badge.earned
+                            ? 'bg-[#B8EE7C]/15 ring-black/5'
+                            : 'bg-gray-50 ring-black/5'
+                        }`}
+                      >
+                        <div className="text-3xl mb-2">{badge.icon}</div>
+                        <div className="font-semibold text-sm text-[#0A0E09]">{badge.name}</div>
+                        <div className="text-xs text-gray-600 mt-1">{badge.description}</div>
+                        {badge.earned && (
+                          <div className="text-[10px] text-[#0A0E09] font-bold mt-1">✓ EARNED</div>
+                        )}
                       </div>
-                      <div className="text-xs text-gray-600">{achievement.description}</div>
+                    ))}
+                  </div>
+                </div>
+              )}
+            />
+
+            <BentoGridItem
+              title={"📊 Recent Activity"}
+              header={(
+                <div className="pt-2">
+                  <div className="space-y-3">
+                    {recentActivities.map((activity, index) => (
+                      <div key={index} className="flex justify-between items-center py-2 border-b border-gray-100 last:border-0">
+                        <div>
+                          <div className="font-medium text-[#0A0E09] text-sm">{activity.activity}</div>
+                          <div className="text-xs text-gray-600">{activity.date}</div>
+                        </div>
+                        <div className="font-bold text-[#0A0E09]">+{activity.points}</div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+            />
+
+            <BentoGridItem
+              title={"🎯 Achievements"}
+              header={(
+                <div className="pt-2">
+                  <div className="space-y-3">
+                    {achievements.map((achievement, index) => (
+                      <div key={index} className="flex items-center gap-3">
+                        <div className={`w-6 h-6 rounded-full flex items-center justify-center ${
+                          achievement.completed ? 'bg-[#B8EE7C]' : 'bg-gray-200'
+                        }`}>
+                          {achievement.completed && <span className="text-white text-sm">✓</span>}
+                        </div>
+                        <div className="flex-1">
+                          <div className={`font-medium text-sm ${achievement.completed ? 'text-[#0A0E09]' : 'text-gray-500'}`}>
+                            {achievement.title}
+                          </div>
+                          <div className="text-xs text-gray-600">{achievement.description}</div>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+            />
+
+            <BentoGridItem
+              className="md:col-span-2"
+              title={"📈 Your Impact"}
+              header={(
+                <div className="pt-2">
+                  <div className="space-y-3">
+                    <div className="flex justify-between items-center">
+                      <span className="text-gray-600">Trees Planted</span>
+                      <span className="font-bold text-green-600">7 🌳</span>
+                    </div>
+                    <div className="flex justify-between items-center">
+                      <span className="text-gray-600">CO2 Offset</span>
+                      <span className="font-bold text-blue-600">156 kg 🌍</span>
+                    </div>
+                    <div className="flex justify-between items-center">
+                      <span className="text-gray-600">Waste Diverted</span>
+                      <span className="font-bold text-purple-600">23 kg ♻️</span>
+                    </div>
+                    <div className="flex justify-between items-center">
+                      <span className="text-gray-600">Energy Saved</span>
+                      <span className="font-bold text-yellow-600">450 kWh ⚡</span>
+                    </div>
+                    <div className="flex justify-between items-center">
+                      <span className="text-gray-600">Friends Inspired</span>
+                      <span className="font-bold text-pink-600">12 people 👥</span>
                     </div>
                   </div>
-                ))}
-              </div>
-            </Card>
-
-            {/* Statistics */}
-            <Card className="p-6">
-              <h2 className="text-xl font-bold text-black mb-6">📈 Your Impact</h2>
-              <div className="space-y-4">
-                <div className="flex justify-between items-center">
-                  <span className="text-gray-600">Trees Planted</span>
-                  <span className="font-bold text-green-600">7 🌳</span>
+                  <div className="mt-6 p-4 bg-[#B8EE7C]/15 rounded-xl text-center ring-1 ring-black/5">
+                    <div className="font-bold text-[#0A0E09]">Environmental Impact Score</div>
+                    <div className="text-2xl font-black text-[#0A0E09]">A+</div>
+                    <div className="text-sm text-gray-600">Keep up the amazing work! 🌟</div>
+                  </div>
                 </div>
-                <div className="flex justify-between items-center">
-                  <span className="text-gray-600">CO2 Offset</span>
-                  <span className="font-bold text-blue-600">156 kg 🌍</span>
-                </div>
-                <div className="flex justify-between items-center">
-                  <span className="text-gray-600">Waste Diverted</span>
-                  <span className="font-bold text-purple-600">23 kg ♻️</span>
-                </div>
-                <div className="flex justify-between items-center">
-                  <span className="text-gray-600">Energy Saved</span>
-                  <span className="font-bold text-yellow-600">450 kWh ⚡</span>
-                </div>
-                <div className="flex justify-between items-center">
-                  <span className="text-gray-600">Friends Inspired</span>
-                  <span className="font-bold text-pink-600">12 people 👥</span>
-                </div>
-              </div>
-              
-              <div className="mt-6 p-4 bg-[#B8EE7C]/20 rounded-lg text-center">
-                <div className="font-bold text-black">Environmental Impact Score</div>
-                <div className="text-2xl font-black text-[#B8EE7C]">A+</div>
-                <div className="text-sm text-gray-600">Keep up the amazing work! 🌟</div>
-              </div>
-            </Card>
-          </div>
+              )}
+            />
+          </BentoGrid>
         </div>
       </main>
       <Footer />
