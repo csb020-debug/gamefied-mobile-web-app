@@ -45,10 +45,10 @@ const Profile: React.FC = () => {
   ];
 
   return (
-    <div className="flex flex-col max-w-[1920px] mx-auto px-[70px] max-md:px-4 min-h-screen">
+    <div className="min-h-screen bg-white">
       <Navbar />
-      
-      <main className="flex-1 py-10">
+      <div className="pt-16">
+        <main className="flex-1 py-10">
         <div className="max-w-6xl mx-auto">
           {/* Profile Header */}
           <Card className="p-8 mb-8">
@@ -195,9 +195,9 @@ const Profile: React.FC = () => {
             </Card>
           </div>
         </div>
-      </main>
-      
-      <Footer />
+        </main>
+        <Footer />
+      </div>
     </div>
   );
 };

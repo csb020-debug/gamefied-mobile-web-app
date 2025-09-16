@@ -17,46 +17,47 @@ export const Navbar: React.FC = () => {
   ];
 
   return (
-    <div
-      className="justify-between items-center backdrop-blur-md bg-[rgba(255,255,255,0.80)] flex w-full px-16 py-4 max-md:px-4"
-      aria-label="Top navigation bar"
-    >
-      <div className="flex items-center gap-8 w-full">
-        <Link to="/" className="flex-shrink-0">
-          <div className={`min-h-[60px] ${isMobile ? 'w-[120px]' : 'w-[160px]'} max-w-full`}>
-            <img
-              src="https://cdn.builder.io/api/v1/image/assets/TEMP/5649d9f7037e46bfb785405d17b2e6b707bf0d6d?placeholderIfAbsent=true"
-              className="aspect-[2.22] object-contain w-full"
-              alt="EcoLearn Platform Logo"
-            />
-          </div>
-        </Link>
-        
-        {!isMobile && (
-          <nav className="flex items-center gap-6 flex-1 justify-center">
-            {navItems.map((item) => (
-              <Link
-                key={item.path}
-                to={item.path}
-                className={`text-sm font-semibold transition-colors hover:text-[#B8EE7C] ${
-                  location.pathname === item.path 
-                    ? 'text-[#B8EE7C]' 
-                    : 'text-[rgba(10,14,9,1)]'
-                }`}
-              >
-                {item.name}
-              </Link>
-            ))}
-          </nav>
-        )}
-        
-        <div className="flex items-center gap-4">
-          <div className="bg-[#B8EE7C] text-[#0A0E09] px-3 py-1 rounded-full text-sm font-bold">
-            🌿 1,250 Eco-Points
-          </div>
+    <nav className="fixed top-0 left-0 right-0 z-50 backdrop-blur-xl bg-white/10 border-b border-white/20 shadow-lg">
+      <div className="max-w-7xl mx-auto px-6 lg:px-8">
+        <div className="flex items-center justify-between h-16">
+          <Link to="/" className="flex-shrink-0">
+            <div className={`min-h-[40px] ${isMobile ? 'w-[100px]' : 'w-[140px]'} max-w-full`}>
+              <img
+                src="https://cdn.builder.io/api/v1/image/assets/TEMP/5649d9f7037e46bfb785405d17b2e6b707bf0d6d?placeholderIfAbsent=true"
+                className="aspect-[2.22] object-contain w-full"
+                alt="EcoLearn Platform Logo"
+              />
+            </div>
+          </Link>
+          
+          {!isMobile && (
+            <div className="hidden md:flex items-center space-x-8">
+              {navItems.map((item) => (
+                <Link
+                  key={item.path}
+                  to={item.path}
+                  className={`relative px-3 py-2 text-sm font-semibold transition-all duration-300 hover:text-[#B8EE7C] ${
+                    location.pathname === item.path 
+                      ? 'text-[#B8EE7C] after:absolute after:bottom-0 after:left-0 after:right-0 after:h-0.5 after:bg-[#B8EE7C]' 
+                      : 'text-[#0A0E09]'
+                  }`}
+                >
+                  {item.name}
+                </Link>
+              ))}
+            </div>
+          )}
+          
+          {isMobile && (
+            <button className="md:hidden p-2">
+              <svg className="w-6 h-6 text-[#0A0E09]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
+              </svg>
+            </button>
+          )}
         </div>
       </div>
-    </div>
+    </nav>
   );
 };
 

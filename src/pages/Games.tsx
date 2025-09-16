@@ -48,9 +48,10 @@ const Games: React.FC = () => {
     const GameComponent = game?.component;
     
     return (
-      <div className="flex flex-col max-w-[1920px] mx-auto px-[70px] max-md:px-4 min-h-screen">
+      <div className="min-h-screen bg-white">
         <Navbar />
-        <main className="flex-1 py-10">
+        <div className="pt-16">
+          <main className="flex-1 py-10">
           <div className="max-w-4xl mx-auto">
             <div className="mb-6">
               <button
@@ -62,17 +63,18 @@ const Games: React.FC = () => {
             </div>
             {GameComponent && <GameComponent onComplete={() => setActiveGame(null)} />}
           </div>
-        </main>
-        <Footer />
+          </main>
+          <Footer />
+        </div>
       </div>
     );
   }
 
   return (
-    <div className="flex flex-col max-w-[1920px] mx-auto px-[70px] max-md:px-4 min-h-screen">
+    <div className="min-h-screen bg-white">
       <Navbar />
-      
-      <main className="flex-1 py-10">
+      <div className="pt-16">
+        <main className="flex-1 py-10">
         <div className="max-w-6xl mx-auto">
           <div className="text-center mb-12">
             <h1 className="text-[45px] font-black leading-[0.9] tracking-[-0.9px] uppercase text-black mb-4">
@@ -137,9 +139,9 @@ const Games: React.FC = () => {
             </div>
           </div>
         </div>
-      </main>
-      
-      <Footer />
+        </main>
+        <Footer />
+      </div>
     </div>
   );
 };
