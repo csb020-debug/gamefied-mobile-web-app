@@ -1,10 +1,11 @@
 import React, { useState } from "react";
-import Navbar from "../components/learning-companion/Navbar";
+import StaggeredMenu from "../components/ui/StaggeredMenu";
 import Footer from "../components/learning-companion/Footer";
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
 import { toast } from "sonner";
+import { menuItems, socialItems } from "../components/ui/MenuData";
 
 const Challenges: React.FC = () => {
   const [completedChallenges, setCompletedChallenges] = useState<number[]>([1, 3]);
@@ -103,11 +104,24 @@ const Challenges: React.FC = () => {
   }, 0);
 
   return (
-    <div className="min-h-screen bg-white">
-      <Navbar />
-      <div className="pt-16">
-        <main className="flex-1 py-10">
-        <div className="max-w-6xl mx-auto">
+    <div className="min-h-screen bg-white relative">
+      <StaggeredMenu
+        position="right"
+        items={menuItems}
+        socialItems={socialItems}
+        displaySocials={true}
+        displayItemNumbering={true}
+        menuButtonColor="#0A0E09"
+        openMenuButtonColor="#fff"
+        changeMenuColorOnOpen={true}
+        colors={['#B19EEF', '#5227FF']}
+        logoUrl="https://cdn.builder.io/api/v1/image/assets/TEMP/5649d9f7037e46bfb785405d17b2e6b707bf0d6d?placeholderIfAbsent=true"
+        accentColor="#ff6b6b"
+        onMenuOpen={() => console.log('Menu opened')}
+        onMenuClose={() => console.log('Menu closed')}
+      />
+      <main className="flex-1 py-10">
+      <div className="max-w-6xl mx-auto">
           <div className="text-center mb-12">
             <h1 className="text-[45px] font-black leading-[0.9] tracking-[-0.9px] uppercase text-black mb-4">
               Eco Challenges
@@ -226,9 +240,8 @@ const Challenges: React.FC = () => {
             </Card>
           </div>
         </div>
-        </main>
-        <Footer />
-      </div>
+      </main>
+      <Footer />
     </div>
   );
 };

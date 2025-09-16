@@ -1,11 +1,12 @@
 import React, { useState } from "react";
-import Navbar from "../components/learning-companion/Navbar";
+import StaggeredMenu from "../components/ui/StaggeredMenu";
 import Footer from "../components/learning-companion/Footer";
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import RecycleGame from "../components/games/RecycleGame";
 import EnergyQuiz from "../components/games/EnergyQuiz";
 import CarbonCalculator from "../components/games/CarbonCalculator";
+import { menuItems, socialItems } from "../components/ui/MenuData";
 
 const Games: React.FC = () => {
   const [activeGame, setActiveGame] = useState<string | null>(null);
@@ -48,11 +49,24 @@ const Games: React.FC = () => {
     const GameComponent = game?.component;
     
     return (
-      <div className="min-h-screen bg-white">
-        <Navbar />
-        <div className="pt-16">
-          <main className="flex-1 py-10">
-          <div className="max-w-4xl mx-auto">
+      <div className="min-h-screen bg-white relative">
+        <StaggeredMenu
+          position="right"
+          items={menuItems}
+          socialItems={socialItems}
+          displaySocials={true}
+          displayItemNumbering={true}
+          menuButtonColor="#0A0E09"
+          openMenuButtonColor="#fff"
+          changeMenuColorOnOpen={true}
+          colors={['#B19EEF', '#5227FF']}
+          logoUrl="https://cdn.builder.io/api/v1/image/assets/TEMP/5649d9f7037e46bfb785405d17b2e6b707bf0d6d?placeholderIfAbsent=true"
+          accentColor="#ff6b6b"
+          onMenuOpen={() => console.log('Menu opened')}
+          onMenuClose={() => console.log('Menu closed')}
+        />
+        <main className="flex-1 py-10">
+        <div className="max-w-4xl mx-auto">
             <div className="mb-6">
               <button
                 onClick={() => setActiveGame(null)}
@@ -63,19 +77,31 @@ const Games: React.FC = () => {
             </div>
             {GameComponent && <GameComponent onComplete={() => setActiveGame(null)} />}
           </div>
-          </main>
-          <Footer />
-        </div>
+        </main>
+        <Footer />
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-white">
-      <Navbar />
-      <div className="pt-16">
-        <main className="flex-1 py-10">
-        <div className="max-w-6xl mx-auto">
+    <div className="min-h-screen bg-white relative">
+      <StaggeredMenu
+        position="right"
+        items={menuItems}
+        socialItems={socialItems}
+        displaySocials={true}
+        displayItemNumbering={true}
+        menuButtonColor="#0A0E09"
+        openMenuButtonColor="#fff"
+        changeMenuColorOnOpen={true}
+        colors={['#B19EEF', '#5227FF']}
+        logoUrl="https://cdn.builder.io/api/v1/image/assets/TEMP/5649d9f7037e46bfb785405d17b2e6b707bf0d6d?placeholderIfAbsent=true"
+        accentColor="#ff6b6b"
+        onMenuOpen={() => console.log('Menu opened')}
+        onMenuClose={() => console.log('Menu closed')}
+      />
+      <main className="flex-1 py-10">
+      <div className="max-w-6xl mx-auto">
           <div className="text-center mb-12">
             <h1 className="text-[45px] font-black leading-[0.9] tracking-[-0.9px] uppercase text-black mb-4">
               Environmental Games
@@ -139,9 +165,8 @@ const Games: React.FC = () => {
             </div>
           </div>
         </div>
-        </main>
-        <Footer />
-      </div>
+      </main>
+      <Footer />
     </div>
   );
 };
