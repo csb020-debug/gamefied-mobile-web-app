@@ -154,7 +154,7 @@ export default function ExpandableCardDemo() {
           </div>
         ) : null}
       </AnimatePresence>
-      <ul className="max-w-6xl mx-auto w-full grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 items-start gap-6">
+      <ul className="max-w-6xl mx-auto w-full grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 items-start gap-3">
         {cards.map((card, index) => (
           <motion.div
             layoutId={`card-${card.title}-${id}`}
@@ -169,48 +169,29 @@ export default function ExpandableCardDemo() {
                   height={240}
                   src={card.imageSrc}
                   alt={card.title}
-                  className="h-60 w-full rounded-lg object-cover object-center"
+                  className={`w-full rounded-lg object-cover object-center h-80`}
                 />
                 {card.completed && (
                   <div className="absolute top-2 right-2 bg-green-500 text-white rounded-full p-1.5 shadow-md">
                     <IconCheck className="w-4 h-4" />
                   </div>
                 )}
+                <div className="absolute inset-x-0 bottom-0 p-4">
+                  <div className="rounded-lg bg-gradient-to-t from-black/60 via-black/30 to-transparent p-3">
+                    <div className="flex items-center justify-between text-white text-sm mb-2">
+                      <span className="font-semibold">{card.title}</span>
+                      <span className="font-medium">Progress {card.progress}%</span>
+                    </div>
+                    <div className="w-full bg-white/30 rounded-full h-3">
+                      <div 
+                        className="h-3 rounded-full bg-green-500 transition-all duration-500"
+                        style={{ width: `${card.progress}%` }}
+                      />
+                    </div>
+                  </div>
+                </div>
               </motion.div>
-              <div className="flex justify-center items-center flex-col">
-                <motion.h3
-                  layoutId={`title-${card.title}-${id}`}
-                  className="font-medium text-neutral-800 dark:text-neutral-200 text-center md:text-left text-base"
-                >
-                  {card.title}
-                </motion.h3>
-                <motion.p
-                  layoutId={`description-${card.description}-${id}`}
-                  className="text-neutral-600 dark:text-neutral-400 text-center md:text-left text-sm"
-                >
-                  {card.description}
-                </motion.p>
-                <div className="flex items-center gap-2 mt-2">
-                  <span className="bg-green-100 text-green-800 px-2 py-1 rounded-full text-xs font-medium">
-                    {card.difficulty}
-                  </span>
-                  <span className="text-green-600 font-semibold text-xs">
-                    🌿 {card.points} pts
-                  </span>
-                </div>
-                <div className="w-full mt-2">
-                  <div className="flex justify-between items-center text-xs text-gray-600 mb-1">
-                    <span>Progress</span>
-                    <span>{card.progress}%</span>
-                  </div>
-                  <div className="w-full bg-gray-200 rounded-full h-2">
-                    <div 
-                      className="h-2 rounded-full bg-green-500 transition-all duration-500"
-                      style={{ width: `${card.progress}%` }}
-                    />
-                  </div>
-                </div>
-              </div>
+              {null}
             </div>
           </motion.div>
         ))}
@@ -256,7 +237,7 @@ const cards = [
   {
     title: "Climate Change Basics",
     description: "Understanding greenhouse gases and global warming impact.",
-    imageSrc: "/images/lessons/climate-change.jpg", // Replace with your image path
+    imageSrc: "/climate.png",
     difficulty: "Beginner",
     points: 100,
     progress: 85,
@@ -285,7 +266,7 @@ const cards = [
   {
     title: "Renewable Energy",
     description: "Solar, wind, and hydroelectric power solutions.",
-    imageSrc: "/images/lessons/renewable-energy.jpg", // Replace with your image path
+    imageSrc: "/renewable.png",
     difficulty: "Intermediate",
     points: 150,
     progress: 100,
@@ -314,7 +295,7 @@ const cards = [
   {
     title: "Ocean Conservation",
     description: "Marine ecosystems and plastic pollution solutions.",
-    imageSrc: "/images/lessons/ocean-conservation.jpg", // Replace with your image path
+    imageSrc: "/ocean.png",
     difficulty: "Beginner",
     points: 120,
     progress: 45,
@@ -343,7 +324,7 @@ const cards = [
   {
     title: "Sustainable Living",
     description: "Eco-friendly lifestyle choices and footprint reduction.",
-    imageSrc: "/images/lessons/sustainable-living.jpg", // Replace with your image path
+    imageSrc: "/sustainable_living.png",
     difficulty: "Advanced",
     points: 180,
     progress: 0,
@@ -372,7 +353,7 @@ const cards = [
   {
     title: "Biodiversity Protection",
     description: "Preserving wildlife and natural habitats worldwide.",
-    imageSrc: "/images/lessons/biodiversity.jpg", // Replace with your image path
+    imageSrc: "/bio.png", // Updated to use the provided bio.png in public
     difficulty: "Intermediate",
     points: 200,
     progress: 30,
@@ -401,7 +382,7 @@ const cards = [
   {
     title: "Waste Management",
     description: "Reduce, reuse, recycle for circular economy.",
-    imageSrc: "/images/lessons/waste-management.jpg", // Replace with your image path
+    imageSrc: "/waste_management.png",
     difficulty: "Beginner",
     points: 140,
     progress: 60,
@@ -430,7 +411,7 @@ const cards = [
   {
     title: "Green Technology",
     description: "Innovative technologies for sustainability.",
-    imageSrc: "/images/lessons/green-technology.jpg", // Replace with your image path
+    imageSrc: "/green_tech.png",
     difficulty: "Advanced",
     points: 220,
     progress: 15,
@@ -459,7 +440,7 @@ const cards = [
   {
     title: "Environmental Action",
     description: "Practical steps to make a real difference.",
-    imageSrc: "/images/lessons/environmental-action.jpg", // Replace with your image path
+    imageSrc: "/environmental_action.png",
     difficulty: "Intermediate",
     points: 160,
     progress: 70,
