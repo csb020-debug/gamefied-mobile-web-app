@@ -35,14 +35,14 @@ const Leaderboard: React.FC = () => {
   ];
 
   return (
-    <div className="min-h-screen bg-white relative">
+    <div className="min-h-screen bg-background relative">
       <main className="flex-1 py-10">
       <div className="max-w-6xl mx-auto">
           <div className="text-center mb-12">
-            <h1 className="text-[45px] font-black leading-[0.9] tracking-[-0.9px] uppercase text-black mb-4">
+            <h1 className="text-[45px] font-black leading-[0.9] tracking-[-0.9px] uppercase text-foreground mb-4">
               Eco Leaderboard
             </h1>
-            <p className="text-[24px] font-light leading-[34px] text-black max-w-2xl mx-auto">
+            <p className="text-[24px] font-light leading-[34px] text-foreground max-w-2xl mx-auto">
               See how you rank among eco-champions in your school and beyond
             </p>
           </div>

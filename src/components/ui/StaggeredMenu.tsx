@@ -1,6 +1,7 @@
 import React, { useCallback, useLayoutEffect, useRef, useState } from 'react';
 import { gsap } from 'gsap';
 import './StaggeredMenu.css';
+import AnimatedThemeToggler from '@/components/magicui/animated-theme-toggler';
 
 export interface StaggeredMenuItem {
   label: string;
@@ -365,13 +366,15 @@ export const StaggeredMenu: React.FC<StaggeredMenuProps> = ({
       <header className="staggered-menu-header" aria-label="Main navigation header">
         <div className="sm-logo" aria-label="Logo">
           <h1 
-            className="text-black font-black uppercase leading-none text-3xl"
+            className="text-foreground font-black uppercase leading-none text-3xl"
             style={{ fontFamily: 'Luckiest Guy, cursive' }}
           >
             ECO QUEST
           </h1>
         </div>
-        <button
+        <div className="flex items-center gap-3">
+          <AnimatedThemeToggler className="h-6 w-6 text-foreground" />
+          <button
           ref={toggleBtnRef}
           className="sm-toggle"
           aria-label={open ? 'Close menu' : 'Open menu'}
@@ -380,20 +383,21 @@ export const StaggeredMenu: React.FC<StaggeredMenuProps> = ({
           onClick={toggleMenu}
           type="button"
         >
-          <span ref={textWrapRef} className="sm-toggle-textWrap" aria-hidden="true">
-            <span ref={textInnerRef} className="sm-toggle-textInner">
-              {textLines.map((l, i) => (
-                <span className="sm-toggle-line" key={i}>
-                  {l}
-                </span>
-              ))}
+            <span ref={textWrapRef} className="sm-toggle-textWrap" aria-hidden="true">
+              <span ref={textInnerRef} className="sm-toggle-textInner">
+                {textLines.map((l, i) => (
+                  <span className="sm-toggle-line" key={i}>
+                    {l}
+                  </span>
+                ))}
+              </span>
             </span>
-          </span>
-          <span ref={iconRef} className="sm-icon" aria-hidden="true">
-            <span ref={plusHRef} className="sm-icon-line" />
-            <span ref={plusVRef} className="sm-icon-line sm-icon-line-v" />
-          </span>
-        </button>
+            <span ref={iconRef} className="sm-icon" aria-hidden="true">
+              <span ref={plusHRef} className="sm-icon-line" />
+              <span ref={plusVRef} className="sm-icon-line sm-icon-line-v" />
+            </span>
+          </button>
+        </div>
       </header>
 
       <aside id="staggered-menu-panel" ref={panelRef} className="staggered-menu-panel" aria-hidden={!open}>

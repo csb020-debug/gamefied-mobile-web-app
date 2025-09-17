@@ -19,6 +19,16 @@
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link href="https://fonts.googleapis.com/css2?family=Luckiest+Guy&display=swap" rel="stylesheet" />
+    <script>
+      (function() {
+        try {
+          var stored = localStorage.getItem('theme');
+          var systemDark = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches;
+          var shouldDark = stored === 'dark' || (stored === 'system' && systemDark) || (!stored && systemDark);
+          if (shouldDark) document.documentElement.classList.add('dark');
+        } catch (e) { /* no-op */ }
+      })();
+    </script>
   </head>
 
   <body>

@@ -9,7 +9,7 @@ import Footer from "../components/learning-companion/Footer";
 
 const Index: React.FC = () => {
   return (
-    <div className="min-h-screen bg-white relative">
+    <div className="min-h-screen bg-background relative">
       <Hero />
       <Features />
       <NoMoreStuck />

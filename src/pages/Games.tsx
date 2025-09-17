@@ -1,7 +1,6 @@
 import React, { useState } from "react";
 import Footer from "../components/learning-companion/Footer";
-import { Card } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
+import { FocusCardsWithClick } from "@/components/ui/focus-cards";
 import RecycleGame from "../components/games/RecycleGame";
 import EnergyQuiz from "../components/games/EnergyQuiz";
 import CarbonCalculator from "../components/games/CarbonCalculator";
@@ -19,6 +18,7 @@ const Games: React.FC = () => {
       difficulty: "Easy",
       duration: "5 min",
       icon: "♻️",
+      src: "https://images.unsplash.com/photo-1558618666-fcd25c85cd64?q=80&w=3387&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D",
       component: RecycleGame
     },
     {
@@ -29,6 +29,7 @@ const Games: React.FC = () => {
       difficulty: "Medium",
       duration: "8 min", 
       icon: "⚡",
+      src: "https://images.unsplash.com/photo-1466611653911-95081537e5b7?q=80&w=3072&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D",
       component: EnergyQuiz
     },
     {
@@ -39,16 +40,20 @@ const Games: React.FC = () => {
       difficulty: "Hard",
       duration: "10 min",
       icon: "🌍",
+      src: "https://images.unsplash.com/photo-1569163139394-de446e504e4e?q=80&w=3070&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D",
       component: CarbonCalculator
     }
   ];
+
+  // FocusCards data - only the 3 available games
+  const focusCardsData = games.map(game => ({ title: game.title, src: game.src }));
 
   if (activeGame) {
     const game = games.find(g => g.id === activeGame);
     const GameComponent = game?.component;
     
     return (
-      <div className="min-h-screen bg-white relative">
+      <div className="min-h-screen bg-background relative">
         <main className="flex-1 py-10">
         <div className="max-w-4xl mx-auto">
             <div className="mb-6">
@@ -68,71 +73,23 @@ const Games: React.FC = () => {
   }
 
   return (
-    <div className="min-h-screen bg-white relative">
+    <div className="min-h-screen bg-background relative">
       <main className="flex-1 py-10">
       <div className="max-w-6xl mx-auto">
           <div className="text-center mb-12">
-            <h1 className="text-[45px] font-black leading-[0.9] tracking-[-0.9px] uppercase text-black mb-4">
+            <h1 className="text-[45px] font-black leading-[0.9] tracking-[-0.9px] uppercase text-foreground mb-4">
               Environmental Games
             </h1>
-            <p className="text-[24px] font-light leading-[34px] text-black max-w-2xl mx-auto">
+            <p className="text-[24px] font-light leading-[34px] text-foreground max-w-2xl mx-auto">
               Learn through fun, interactive games and challenges
             </p>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-            {games.map((game) => (
-              <Card key={game.id} className="p-6 hover:shadow-lg transition-shadow cursor-pointer"
-                    onClick={() => setActiveGame(game.id)}>
-                <div className="text-center mb-4">
-                  <div className="text-4xl mb-2">{game.icon}</div>
-                  <h3 className="text-xl font-bold text-black mb-2">{game.title}</h3>
-                  <p className="text-gray-600 mb-4">{game.description}</p>
-                </div>
-
-                <div className="flex justify-center gap-2 mb-4">
-                  <Badge variant="outline" className="text-xs">
-                    {game.difficulty}
-                  </Badge>
-                  <Badge variant="outline" className="text-xs">
-                    ⏱️ {game.duration}
-                  </Badge>
-                </div>
-
-                <div className="text-center mb-4">
-                  <span className="text-lg font-bold text-[#B8EE7C]">
-                    🌿 {game.points} points
-                  </span>
-                </div>
-
-                <button className="w-full bg-[#B8EE7C] text-[#0A0E09] font-bold py-3 px-4 rounded-lg hover:bg-[#96EE60] transition-colors">
-                  Play Game
-                </button>
-              </Card>
-            ))}
+          {/* FocusCards Display - Clickable Games */}
+          <div className="mb-12">
+            <FocusCardsWithClick cards={focusCardsData} onGameClick={setActiveGame} games={games} />
           </div>
 
-          <div className="mt-12 bg-[rgba(242,242,242,1)] p-8 rounded-2xl">
-            <h2 className="text-2xl font-bold text-black mb-6">Game Statistics</h2>
-            <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
-              <div className="text-center">
-                <div className="text-3xl font-black text-[#B8EE7C]">12</div>
-                <div className="text-sm text-gray-600">Games Played</div>
-              </div>
-              <div className="text-center">
-                <div className="text-3xl font-black text-[#B8EE7C]">85%</div>
-                <div className="text-sm text-gray-600">Success Rate</div>
-              </div>
-              <div className="text-center">
-                <div className="text-3xl font-black text-[#B8EE7C]">750</div>
-                <div className="text-sm text-gray-600">Points from Games</div>
-              </div>
-              <div className="text-center">
-                <div className="text-3xl font-black text-[#B8EE7C]">#3</div>
-                <div className="text-sm text-gray-600">School Ranking</div>
-              </div>
-            </div>
-          </div>
         </div>
       </main>
       <Footer />
