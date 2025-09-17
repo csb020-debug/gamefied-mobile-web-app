@@ -92,50 +92,50 @@ export const Features: React.FC = () => {
   }, []);
 
   return (
-    <div className="self-center flex w-full flex-col items-center pt-10 pb-20 max-md:max-w-full">
-      <div className="w-[720px] max-w-full text-[45px] text-[#0a0e09] font-black text-center leading-[39px] py-3 max-md:max-w-full max-md:text-[40px] max-md:leading-[38px]">
+    <div className="self-center flex w-full flex-col items-center pt-4 pb-12 sm:pb-16 lg:pb-20 px-4 sm:px-6 lg:px-8">
+      <div className="w-full max-w-4xl text-2xl xs:text-3xl sm:text-4xl md:text-5xl lg:text-6xl text-[#0a0e09] font-black text-center leading-tight py-3">
         SAVING THE PLANET SHOULDN'T FEEL OVERWHELMING.
       </div>
       
-      <div className="w-full max-w-4xl mt-8">
+      <div className="w-full max-w-6xl mt-6 sm:mt-8">
         <ul className="stack-cards js-stack-cards">
           <li className="stack-cards__item bg-[#f2f2f2] rounded-2xl shadow-lg js-stack-cards__item">
-            <a href="#" className="flex flex-col items-center bg-white border border-gray-200 rounded-lg shadow-sm md:flex-row w-full md:max-w-none overflow-hidden hover:bg-gray-100 dark:border-gray-700 dark:bg-gray-800 dark:hover:bg-gray-700">
-              <div className="flex flex-col justify-between p-4 leading-normal">
-                <h5 className="mb-2 text-2xl font-bold tracking-tight text-gray-900 dark:text-white">Interactive Lessons</h5>
-                <p className="mb-3 font-normal text-gray-700 dark:text-gray-400">Learn environmental science through engaging interactive content and multimedia experiences.</p>
+            <a href="#" className="flex flex-col items-center bg-white border border-gray-200 rounded-lg shadow-sm sm:flex-row w-full sm:max-w-none overflow-hidden hover:bg-gray-100 dark:border-gray-700 dark:bg-gray-800 dark:hover:bg-gray-700">
+              <div className="flex flex-col justify-between p-4 sm:p-6 leading-normal w-full sm:w-1/2">
+                <h5 className="mb-2 text-xl sm:text-2xl font-bold tracking-tight text-gray-900 dark:text-white">Interactive Lessons</h5>
+                <p className="mb-3 font-normal text-sm sm:text-base text-gray-700 dark:text-gray-400">Learn environmental science through engaging interactive content and multimedia experiences.</p>
               </div>
-              <img className="object-cover w-full rounded-b-lg h-48 md:h-full md:w-[360px] lg:w-[420px] md:rounded-none md:rounded-e-lg" src="/lesson.png" alt="Interactive Lessons" />
+              <img className="object-cover w-full rounded-b-lg h-48 sm:h-full sm:w-1/2 sm:max-w-[360px] lg:max-w-[420px] sm:rounded-none sm:rounded-e-lg" src="/lesson.png" alt="Interactive Lessons" />
             </a>
           </li>
 
           <li className="stack-cards__item bg-[#f2f2f2] rounded-2xl shadow-lg js-stack-cards__item">
-            <a href="#" className="flex flex-col items-center bg-white border border-gray-200 rounded-lg shadow-sm md:flex-row w-full md:max-w-none overflow-hidden hover:bg-gray-100 dark:border-gray-700 dark:bg-gray-800 dark:hover:bg-gray-700">
-              <div className="flex flex-col justify-between p-4 leading-normal">
-                <h5 className="mb-2 text-2xl font-bold tracking-tight text-gray-900 dark:text-white">Eco Challenges</h5>
-                <p className="mb-3 font-normal text-gray-700 dark:text-gray-400">Complete real-world environmental tasks like tree planting, waste segregation, and green actions.</p>
+            <a href="#" className="flex flex-col items-center bg-white border border-gray-200 rounded-lg shadow-sm sm:flex-row w-full sm:max-w-none overflow-hidden hover:bg-gray-100 dark:border-gray-700 dark:bg-gray-800 dark:hover:bg-gray-700">
+              <div className="flex flex-col justify-between p-4 sm:p-6 leading-normal w-full sm:w-1/2">
+                <h5 className="mb-2 text-xl sm:text-2xl font-bold tracking-tight text-gray-900 dark:text-white">Eco Challenges</h5>
+                <p className="mb-3 font-normal text-sm sm:text-base text-gray-700 dark:text-gray-400">Complete real-world environmental tasks like tree planting, waste segregation, and green actions.</p>
               </div>
-              <img className="object-cover w-full rounded-b-lg h-48 md:h-full md:w-[360px] lg:w-[420px] md:rounded-none md:rounded-e-lg" src="/task1.png" alt="Eco Challenges" />
+              <img className="object-cover w-full rounded-b-lg h-48 sm:h-full sm:w-1/2 sm:max-w-[360px] lg:max-w-[420px] sm:rounded-none sm:rounded-e-lg" src="/task1.png" alt="Eco Challenges" />
             </a>
           </li>
 
           <li className="stack-cards__item bg-[#f2f2f2] rounded-2xl shadow-lg js-stack-cards__item">
-            <a href="#" className="flex flex-col items-center bg-white border border-gray-200 rounded-lg shadow-sm md:flex-row w-full md:max-w-none overflow-hidden hover:bg-gray-100 dark:border-gray-700 dark:bg-gray-800 dark:hover:bg-gray-700">
-              <div className="flex flex-col justify-between p-4 leading-normal">
-                <h5 className="mb-2 text-2xl font-bold tracking-tight text-gray-900 dark:text-white">Green Quizzes</h5>
-                <p className="mb-3 font-normal text-gray-700 dark:text-gray-400">Test your environmental knowledge with gamified quizzes and earn eco-points for each correct answer.</p>
+            <a href="#" className="flex flex-col items-center bg-white border border-gray-200 rounded-lg shadow-sm sm:flex-row w-full sm:max-w-none overflow-hidden hover:bg-gray-100 dark:border-gray-700 dark:bg-gray-800 dark:hover:bg-gray-700">
+              <div className="flex flex-col justify-between p-4 sm:p-6 leading-normal w-full sm:w-1/2">
+                <h5 className="mb-2 text-xl sm:text-2xl font-bold tracking-tight text-gray-900 dark:text-white">Green Quizzes</h5>
+                <p className="mb-3 font-normal text-sm sm:text-base text-gray-700 dark:text-gray-400">Test your environmental knowledge with gamified quizzes and earn eco-points for each correct answer.</p>
               </div>
-              <img className="object-cover w-full rounded-b-lg h-48 md:h-full md:w-[360px] lg:w-[420px] md:rounded-none md:rounded-e-lg" src="/task2.png" alt="Green Quizzes" />
+              <img className="object-cover w-full rounded-b-lg h-48 sm:h-full sm:w-1/2 sm:max-w-[360px] lg:max-w-[420px] sm:rounded-none sm:rounded-e-lg" src="/task2.png" alt="Green Quizzes" />
             </a>
           </li>
 
           <li className="stack-cards__item bg-[#f2f2f2] rounded-2xl shadow-lg js-stack-cards__item">
-            <a href="#" className="flex flex-col items-center bg-white border border-gray-200 rounded-lg shadow-sm md:flex-row w-full md:max-w-none overflow-hidden hover:bg-gray-100 dark:border-gray-700 dark:bg-gray-800 dark:hover:bg-gray-700">
-              <div className="flex flex-col justify-between p-4 leading-normal">
-                <h5 className="mb-2 text-2xl font-bold tracking-tight text-gray-900 dark:text-white">Eco Rewards</h5>
-                <p className="mb-3 font-normal text-gray-700 dark:text-gray-400">Earn digital badges, recognition, and compete with schools through sustainable practice tracking.</p>
+            <a href="#" className="flex flex-col items-center bg-white border border-gray-200 rounded-lg shadow-sm sm:flex-row w-full sm:max-w-none overflow-hidden hover:bg-gray-100 dark:border-gray-700 dark:bg-gray-800 dark:hover:bg-gray-700">
+              <div className="flex flex-col justify-between p-4 sm:p-6 leading-normal w-full sm:w-1/2">
+                <h5 className="mb-2 text-xl sm:text-2xl font-bold tracking-tight text-gray-900 dark:text-white">Eco Rewards</h5>
+                <p className="mb-3 font-normal text-sm sm:text-base text-gray-700 dark:text-gray-400">Earn digital badges, recognition, and compete with schools through sustainable practice tracking.</p>
               </div>
-              <img className="object-cover w-full rounded-b-lg h-48 md:h-full md:w-[360px] lg:w-[420px] md:rounded-none md:rounded-e-lg" src="/task3.png" alt="Eco Rewards" />
+              <img className="object-cover w-full rounded-b-lg h-48 sm:h-full sm:w-1/2 sm:max-w-[360px] lg:max-w-[420px] sm:rounded-none sm:rounded-e-lg" src="/task3.png" alt="Eco Rewards" />
             </a>
           </li>
         </ul>
