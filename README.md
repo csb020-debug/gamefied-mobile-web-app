@@ -60,6 +60,53 @@ This project is built with .
 - shadcn-ui
 - Tailwind CSS
 
+## Supabase Setup
+
+1) Create a Supabase project and enable Email (magic link) auth.
+
+2) In project Settings > API copy:
+- Project URL → set as `VITE_SUPABASE_URL`
+- anon public key → set as `VITE_SUPABASE_ANON_KEY`
+
+3) Create a `.env` file (see `.env.example`) with:
+
+```
+VITE_SUPABASE_URL=your-url
+VITE_SUPABASE_ANON_KEY=your-anon-key
+```
+
+4) Database schema & RLS
+- The SQL files in `supabase/migrations` contain tables, RLS, and triggers for classes, students, assignments, and submissions.
+- Apply these using the Supabase Dashboard SQL editor or via Supabase CLI.
+
+### Using Supabase CLI (optional but recommended)
+Install the CLI: see Supabase docs.
+
+Link your project (once):
+
+```
+npm run supabase:link
+```
+
+Push local migrations to remote:
+
+```
+npm run supabase:db:push
+```
+
+Regenerate TypeScript types (after DB changes):
+
+```
+npm run supabase:types
+```
+
+## Auth & Routes
+- Teachers sign up with magic link at `/teachers/signup`.
+- Teacher dashboard (protected) at `/teacher/dashboard`.
+- Students join via `/join/{class_code}` or `/join`.
+
+Environment variables are used to configure the Supabase client; keys are not hardcoded.
+
 ## How can I deploy this project?
 
 Simply open [Lovable](https://lovable.dev/projects/541b13e4-8994-4ad2-aa3d-745d736815db) and click on Share -> Publish.

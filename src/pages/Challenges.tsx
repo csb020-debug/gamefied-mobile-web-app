@@ -3,104 +3,83 @@ import Footer from "../components/learning-companion/Footer";
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
+import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
+import { useChallenges } from "@/hooks/useChallenges";
+import { useStudent } from "@/hooks/useStudent";
+import { useNavigate } from "react-router-dom";
+import { Calendar, Target, BookOpen, GamepadIcon } from "lucide-react";
  
 
 const Challenges: React.FC = () => {
-  const [completedChallenges, setCompletedChallenges] = useState<number[]>([1, 3]);
+  const { challenges, loading, getSubmissionForChallenge, completeChallenge, getChallengeStats } = useChallenges();
+  const { currentStudent, currentClass } = useStudent();
+  const navigate = useNavigate();
 
-  const challenges = [
-    {
-      id: 1,
-      title: "Plant a Tree",
-      description: "Plant a tree in your community or school garden",
-      points: 100,
-      difficulty: "Easy",
-      category: "Action",
-      duration: "1 hour",
-      icon: "🌳",
-      status: "completed",
-      verification: "Photo of planted tree"
-    },
-    {
-      id: 2,
-      title: "Waste Audit Week",
-      description: "Track and reduce your household waste for one week",
-      points: 150,
-      difficulty: "Medium",
-      category: "Tracking",
-      duration: "1 week",
-      icon: "🗑️",
-      status: "available",
-      verification: "Waste log and reduction plan"
-    },
-    {
-      id: 3,
-      title: "Plastic-Free Day",
-      description: "Go one full day without using single-use plastics",
-      points: 75,
-      difficulty: "Easy",
-      category: "Lifestyle",
-      duration: "1 day",
-      icon: "🚫",
-      status: "completed",
-      verification: "Daily log with alternatives used"
-    },
-    {
-      id: 4,
-      title: "Energy Saving Challenge",
-      description: "Reduce your home energy consumption by 20%",
-      points: 200,
-      difficulty: "Hard",
-      category: "Action",
-      duration: "1 month",
-      icon: "⚡",
-      status: "locked",
-      verification: "Energy bill comparison"
-    },
-    {
-      id: 5,
-      title: "Bike to School Week",
-      description: "Use sustainable transport for a full school week",
-      points: 120,
-      difficulty: "Medium",
-      category: "Transport",
-      duration: "1 week",
-      icon: "🚲",
-      status: "available",
-      verification: "Transport log with photos"
-    },
-    {
-      id: 6,
-      title: "Organic Garden Starter",
-      description: "Create a small organic vegetable garden",
-      points: 180,
-      difficulty: "Hard",
-      category: "Action",
-      duration: "2 weeks",
-      icon: "🥬",
-      status: "locked",
-      verification: "Garden progress photos"
-    }
-  ];
+  const stats = getChallengeStats();
 
-  const handleStartChallenge = (challengeId: number) => {
-    const challenge = challenges.find(c => c.id === challengeId);
-    if (challenge?.status === "available") {
+  const handleStartChallenge = (challenge: any) => {
+    if (challenge.type === 'game') {
+      navigate('/games');
+    } else if (challenge.type === 'quiz') {
+      navigate('/learn');
+    } else {
       toast.success(`Started challenge: ${challenge.title}! Good luck! 🌟`);
     }
   };
 
-  const handleCompleteChallenge = (challengeId: number) => {
-    setCompletedChallenges([...completedChallenges, challengeId]);
-    const challenge = challenges.find(c => c.id === challengeId);
-    toast.success(`Challenge completed! +${challenge?.points} eco-points! 🎉`);
+  const handleCompleteChallenge = async (challenge: any) => {
+    try {
+      await completeChallenge(challenge.id, challenge.config?.points || 100);
+      toast.success(`Challenge completed! +${challenge.config?.points || 100} eco-points! 🎉`);
+    } catch (error) {
+      toast.error('Failed to complete challenge. Please try again.');
+    }
   };
 
-  const totalPoints = completedChallenges.reduce((sum, id) => {
-    const challenge = challenges.find(c => c.id === id);
-    return sum + (challenge?.points || 0);
-  }, 0);
+  const getChallengeIcon = (type: string, category: string) => {
+    if (type === 'game') return '🎮';
+    if (type === 'quiz') return '📚';
+    if (category === 'action') return '🌳';
+    if (category === 'learning') return '📖';
+    if (category === 'tracking') return '📊';
+    if (category === 'lifestyle') return '♻️';
+    return '🎯';
+  };
+
+  const getDifficultyColor = (difficulty: string) => {
+    switch (difficulty?.toLowerCase()) {
+      case 'easy': return 'text-green-600 bg-green-100';
+      case 'medium': return 'text-yellow-600 bg-yellow-100';
+      case 'hard': return 'text-red-600 bg-red-100';
+      default: return 'text-gray-600 bg-gray-100';
+    }
+  };
+
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-background relative flex items-center justify-center">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto mb-4"></div>
+          <p className="text-muted-foreground">Loading challenges...</p>
+        </div>
+      </div>
+    );
+  }
+
+  if (!currentStudent || !currentClass) {
+    return (
+      <div className="min-h-screen bg-background relative flex items-center justify-center">
+        <div className="text-center">
+          <h1 className="text-2xl font-bold mb-4">Join a Class First</h1>
+          <p className="text-muted-foreground mb-6">You need to join a class to access challenges.</p>
+          <Button onClick={() => navigate('/join')}>
+            Join Class
+          </Button>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-background relative">
@@ -120,85 +99,102 @@ const Challenges: React.FC = () => {
             <h2 className="text-xl sm:text-2xl font-bold text-black mb-4 sm:mb-6">Your Challenge Progress</h2>
             <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6">
               <div className="text-center">
-                <div className="text-2xl sm:text-3xl font-black text-[#B8EE7C]">{completedChallenges.length}</div>
+                <div className="text-2xl sm:text-3xl font-black text-[#B8EE7C]">{stats.completed}</div>
                 <div className="text-xs sm:text-sm text-gray-600">Completed</div>
               </div>
               <div className="text-center">
-                <div className="text-2xl sm:text-3xl font-black text-[#B8EE7C]">{totalPoints}</div>
+                <div className="text-2xl sm:text-3xl font-black text-[#B8EE7C]">{stats.points}</div>
                 <div className="text-xs sm:text-sm text-gray-600">Points Earned</div>
               </div>
               <div className="text-center">
                 <div className="text-2xl sm:text-3xl font-black text-[#B8EE7C]">
-                  {Math.round((completedChallenges.length / challenges.length) * 100)}%
+                  {stats.completionRate}%
                 </div>
                 <div className="text-xs sm:text-sm text-gray-600">Completion Rate</div>
               </div>
               <div className="text-center">
-                <div className="text-2xl sm:text-3xl font-black text-[#B8EE7C]">#5</div>
-                <div className="text-xs sm:text-sm text-gray-600">School Ranking</div>
+                <div className="text-2xl sm:text-3xl font-black text-[#B8EE7C]">{stats.total}</div>
+                <div className="text-xs sm:text-sm text-gray-600">Total Challenges</div>
               </div>
             </div>
           </div>
 
           {/* Challenges Grid */}
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6 lg:gap-8">
-            {challenges.map((challenge) => {
-              const isCompleted = completedChallenges.includes(challenge.id);
-              const isLocked = challenge.status === "locked";
-              
-              return (
-                <Card key={challenge.id} className={`p-4 sm:p-6 ${isLocked ? 'opacity-60' : 'hover:shadow-lg'} transition-shadow`}>
-                  <div className="flex justify-between items-start mb-3 sm:mb-4">
-                    <div className="text-2xl sm:text-3xl">{challenge.icon}</div>
-                    {isCompleted && <div className="text-xl sm:text-2xl">✅</div>}
-                    {isLocked && <div className="text-xl sm:text-2xl">🔒</div>}
-                  </div>
+          {challenges.length === 0 ? (
+            <div className="text-center py-12">
+              <Target className="h-16 w-16 text-muted-foreground mx-auto mb-4" />
+              <h3 className="text-xl font-semibold mb-2">No Challenges Yet</h3>
+              <p className="text-muted-foreground mb-6">
+                Your teacher hasn't created any challenges yet. Check back later!
+              </p>
+            </div>
+          ) : (
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6 lg:gap-8">
+              {challenges.map((challenge) => {
+                const submission = getSubmissionForChallenge(challenge.id);
+                const isCompleted = submission?.completed || false;
+                const score = submission?.score || 0;
+                
+                return (
+                  <Card key={challenge.id} className={`p-4 sm:p-6 hover:shadow-lg transition-shadow`}>
+                    <div className="flex justify-between items-start mb-3 sm:mb-4">
+                      <div className="text-2xl sm:text-3xl">
+                        {getChallengeIcon(challenge.type, challenge.config?.category)}
+                      </div>
+                      {isCompleted && <div className="text-xl sm:text-2xl">✅</div>}
+                    </div>
 
-                  <h3 className="text-lg sm:text-xl font-bold text-black mb-2">{challenge.title}</h3>
-                  <p className="text-sm sm:text-base text-gray-600 mb-3 sm:mb-4">{challenge.description}</p>
+                    <h3 className="text-lg sm:text-xl font-bold text-black mb-2">{challenge.title}</h3>
+                    <p className="text-sm sm:text-base text-gray-600 mb-3 sm:mb-4">{challenge.description}</p>
 
-                  <div className="flex flex-wrap gap-1 sm:gap-2 mb-3 sm:mb-4">
-                    <Badge variant="outline" className="text-xs">
-                      {challenge.difficulty}
-                    </Badge>
-                    <Badge variant="outline" className="text-xs">
-                      {challenge.category}
-                    </Badge>
-                    <Badge variant="outline" className="text-xs">
-                      ⏱️ {challenge.duration}
-                    </Badge>
-                  </div>
+                    <div className="flex flex-wrap gap-1 sm:gap-2 mb-3 sm:mb-4">
+                      <Badge variant="outline" className={`text-xs ${getDifficultyColor(challenge.config?.difficulty)}`}>
+                        {challenge.config?.difficulty || 'Easy'}
+                      </Badge>
+                      <Badge variant="outline" className="text-xs">
+                        {challenge.config?.category || 'Challenge'}
+                      </Badge>
+                      <Badge variant="outline" className="text-xs">
+                        {challenge.type}
+                      </Badge>
+                    </div>
 
-                  <div className="text-center mb-3 sm:mb-4">
-                    <span className="text-base sm:text-lg font-bold text-[#B8EE7C]">
-                      🌿 {challenge.points} points
-                    </span>
-                  </div>
+                    <div className="text-center mb-3 sm:mb-4">
+                      <span className="text-base sm:text-lg font-bold text-[#B8EE7C]">
+                        🌿 {challenge.config?.points || 100} points
+                      </span>
+                    </div>
 
-                  <div className="text-xs text-gray-500 mb-3 sm:mb-4">
-                    <strong>Verification:</strong> {challenge.verification}
-                  </div>
+                    {challenge.due_at && (
+                      <div className="text-xs text-gray-500 mb-3 sm:mb-4 flex items-center">
+                        <Calendar className="h-3 w-3 mr-1" />
+                        Due: {new Date(challenge.due_at).toLocaleDateString()}
+                      </div>
+                    )}
 
-                  {isCompleted ? (
-                    <button className="w-full bg-green-100 text-green-800 font-bold py-2 sm:py-3 px-3 sm:px-4 rounded-lg cursor-default text-sm sm:text-base">
-                      ✓ Completed
-                    </button>
-                  ) : isLocked ? (
-                    <button className="w-full bg-gray-200 text-gray-500 font-bold py-2 sm:py-3 px-3 sm:px-4 rounded-lg cursor-not-allowed text-sm sm:text-base">
-                      🔒 Locked
-                    </button>
-                  ) : (
-                    <button 
-                      onClick={() => handleStartChallenge(challenge.id)}
-                      className="w-full bg-[#B8EE7C] text-[#0A0E09] font-bold py-2 sm:py-3 px-3 sm:px-4 rounded-lg hover:bg-[#96EE60] transition-colors text-sm sm:text-base"
-                    >
-                      Start Challenge
-                    </button>
-                  )}
-                </Card>
-              );
-            })}
-          </div>
+                    {challenge.config?.instructions && (
+                      <div className="text-xs text-gray-500 mb-3 sm:mb-4">
+                        <strong>Instructions:</strong> {challenge.config.instructions}
+                      </div>
+                    )}
+
+                    {isCompleted ? (
+                      <div className="w-full bg-green-100 text-green-800 font-bold py-2 sm:py-3 px-3 sm:px-4 rounded-lg text-center text-sm sm:text-base">
+                        ✓ Completed ({score} points)
+                      </div>
+                    ) : (
+                      <Button 
+                        onClick={() => handleStartChallenge(challenge)}
+                        className="w-full bg-[#B8EE7C] text-[#0A0E09] font-bold py-2 sm:py-3 px-3 sm:px-4 rounded-lg hover:bg-[#96EE60] transition-colors text-sm sm:text-base"
+                      >
+                        Start Challenge
+                      </Button>
+                    )}
+                  </Card>
+                );
+              })}
+            </div>
+          )}
 
           {/* Weekly Challenge */}
           <div className="mt-8 sm:mt-10 lg:mt-12">

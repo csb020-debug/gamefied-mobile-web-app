@@ -6,7 +6,12 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Progress } from '@/components/ui/progress';
-import { Users, Trophy, GamepadIcon, LogOut, Clock } from 'lucide-react';
+import { Users, Trophy, GamepadIcon, LogOut, Clock, Award, BookOpen, MessageSquare, Users2, Star } from 'lucide-react';
+import AchievementSystem from '@/components/achievements/AchievementSystem';
+import StudentContentLibrary from '@/components/student/StudentContentLibrary';
+import ClassDiscussions from '@/components/social/ClassDiscussions';
+import CollaborationGroups from '@/components/social/CollaborationGroups';
+import PeerReviewSystem from '@/components/social/PeerReviewSystem';
 
 interface Assignment {
   id: string;
@@ -37,6 +42,8 @@ const StudentDashboard = () => {
   const [submissions, setSubmissions] = useState<Submission[]>([]);
   const [classmates, setClassmates] = useState<ClassStudent[]>([]);
   const [loading, setLoading] = useState(true);
+  const [showAchievements, setShowAchievements] = useState(false);
+  const [activeTab, setActiveTab] = useState('overview');
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -159,15 +166,94 @@ const StudentDashboard = () => {
               {currentClass.name} • {currentClass.grade}
             </p>
           </div>
-          <Button variant="outline" onClick={handleLeaveClass}>
-            <LogOut className="h-4 w-4 mr-2" />
-            Leave Class
-          </Button>
+          <div className="flex space-x-2">
+            <Button 
+              variant="outline" 
+              onClick={() => setShowAchievements(!showAchievements)}
+            >
+              <Award className="h-4 w-4 mr-2" />
+              {showAchievements ? 'Hide Achievements' : 'View Achievements'}
+            </Button>
+            <Button variant="outline" onClick={handleLeaveClass}>
+              <LogOut className="h-4 w-4 mr-2" />
+              Leave Class
+            </Button>
+          </div>
         </div>
 
-        <div className="grid lg:grid-cols-3 gap-6">
-          {/* Stats Cards */}
-          <div className="lg:col-span-3 grid md:grid-cols-3 gap-6 mb-6">
+        {showAchievements ? (
+          <AchievementSystem 
+            studentId={currentStudent.id} 
+            classId={currentClass.id} 
+          />
+        ) : (
+          <div className="space-y-6">
+            {/* Navigation Tabs */}
+            <div className="border-b">
+              <nav className="flex space-x-8">
+                <button
+                  onClick={() => setActiveTab('overview')}
+                  className={`py-2 px-1 border-b-2 font-medium text-sm ${
+                    activeTab === 'overview'
+                      ? 'border-primary text-primary'
+                      : 'border-transparent text-muted-foreground hover:text-foreground'
+                  }`}
+                >
+                  <Trophy className="h-4 w-4 mr-2 inline" />
+                  Overview
+                </button>
+                <button
+                  onClick={() => setActiveTab('content')}
+                  className={`py-2 px-1 border-b-2 font-medium text-sm ${
+                    activeTab === 'content'
+                      ? 'border-primary text-primary'
+                      : 'border-transparent text-muted-foreground hover:text-foreground'
+                  }`}
+                >
+                  <BookOpen className="h-4 w-4 mr-2 inline" />
+                  Content
+                </button>
+                <button
+                  onClick={() => setActiveTab('discussions')}
+                  className={`py-2 px-1 border-b-2 font-medium text-sm ${
+                    activeTab === 'discussions'
+                      ? 'border-primary text-primary'
+                      : 'border-transparent text-muted-foreground hover:text-foreground'
+                  }`}
+                >
+                  <MessageSquare className="h-4 w-4 mr-2 inline" />
+                  Discussions
+                </button>
+                <button
+                  onClick={() => setActiveTab('collaboration')}
+                  className={`py-2 px-1 border-b-2 font-medium text-sm ${
+                    activeTab === 'collaboration'
+                      ? 'border-primary text-primary'
+                      : 'border-transparent text-muted-foreground hover:text-foreground'
+                  }`}
+                >
+                  <Users2 className="h-4 w-4 mr-2 inline" />
+                  Groups
+                </button>
+                <button
+                  onClick={() => setActiveTab('reviews')}
+                  className={`py-2 px-1 border-b-2 font-medium text-sm ${
+                    activeTab === 'reviews'
+                      ? 'border-primary text-primary'
+                      : 'border-transparent text-muted-foreground hover:text-foreground'
+                  }`}
+                >
+                  <Star className="h-4 w-4 mr-2 inline" />
+                  Reviews
+                </button>
+              </nav>
+            </div>
+
+            {/* Tab Content */}
+            {activeTab === 'overview' && (
+          <div className="grid lg:grid-cols-3 gap-6">
+            {/* Stats Cards */}
+            <div className="lg:col-span-3 grid md:grid-cols-3 gap-6 mb-6">
             <Card className="bg-card/80 backdrop-blur-sm">
               <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
                 <CardTitle className="text-sm font-medium">Total Score</CardTitle>
@@ -347,7 +433,26 @@ const StudentDashboard = () => {
               </CardContent>
             </Card>
           </div>
-        </div>
+            </div>
+            )}
+
+            {activeTab === 'content' && currentClass && (
+              <StudentContentLibrary classId={currentClass.id} className={currentClass.name} />
+            )}
+
+            {activeTab === 'discussions' && currentClass && (
+              <ClassDiscussions classId={currentClass.id} className={currentClass.name} />
+            )}
+
+            {activeTab === 'collaboration' && currentClass && (
+              <CollaborationGroups classId={currentClass.id} className={currentClass.name} />
+            )}
+
+            {activeTab === 'reviews' && currentClass && (
+              <PeerReviewSystem classId={currentClass.id} className={currentClass.name} />
+            )}
+          </div>
+        )}
       </div>
     </div>
   );
