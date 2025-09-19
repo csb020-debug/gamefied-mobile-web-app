@@ -1,4 +1,6 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { useChallenges } from "./useChallenges";
+import { toast } from "sonner";
 
 export type GameEngineConfig = {
 	initialLives?: number;
@@ -6,6 +8,8 @@ export type GameEngineConfig = {
 	comboWindowMs?: number;
 	initialTimeMs?: number;
 	autoStart?: boolean;
+	gameType?: string;
+	challengeId?: string;
 };
 
 export type GameEngineState = {
@@ -26,6 +30,7 @@ export type GameEngineApi = GameEngineState & {
 	addPoints: (points: number) => void;
 	loseLife: (count?: number) => void;
 	miss: () => void;
+	saveGameScore: (finalScore: number) => Promise<void>;
 };
 
 export function useGameEngine(config: GameEngineConfig = {}): GameEngineApi {
@@ -35,7 +40,11 @@ export function useGameEngine(config: GameEngineConfig = {}): GameEngineApi {
 		comboWindowMs = 4000,
 		initialTimeMs,
 		autoStart = true,
+		gameType,
+		challengeId,
 	} = config;
+
+	const { completeChallenge } = useChallenges();
 
 	const [score, setScore] = useState<number>(initialScore);
 	const [streak, setStreak] = useState<number>(0);
@@ -91,6 +100,18 @@ export function useGameEngine(config: GameEngineConfig = {}): GameEngineApi {
 		loseLife(1);
 	}, [loseLife]);
 
+	const saveGameScore = useCallback(async (finalScore: number) => {
+		if (challengeId && gameType) {
+			try {
+				await completeChallenge(challengeId, finalScore);
+				toast.success(`Game completed! +${finalScore} points saved!`);
+			} catch (error) {
+				console.error('Error saving game score:', error);
+				toast.error('Failed to save score, but you still played great!');
+			}
+		}
+	}, [challengeId, gameType, completeChallenge]);
+
 	// countdown timer
 	useEffect(() => {
 		if (!initialTimeMs) return;
@@ -128,7 +149,7 @@ export function useGameEngine(config: GameEngineConfig = {}): GameEngineApi {
 		// eslint-disable-next-line react-hooks/exhaustive-deps
 	}, []);
 
-	return useMemo(
+		return useMemo(
 		() => ({
 			score,
 			streak,
@@ -144,6 +165,7 @@ export function useGameEngine(config: GameEngineConfig = {}): GameEngineApi {
 			addPoints,
 			loseLife,
 			miss,
+			saveGameScore,
 		}),
 		[
 			score,
@@ -160,6 +182,7 @@ export function useGameEngine(config: GameEngineConfig = {}): GameEngineApi {
 			addPoints,
 			loseLife,
 			miss,
+			saveGameScore,
 		]
 	);
 }

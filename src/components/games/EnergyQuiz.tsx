@@ -15,7 +15,12 @@ const EnergyQuiz: React.FC<EnergyQuizProps> = ({ onComplete }) => {
   const [selectedAnswer, setSelectedAnswer] = useState<number | null>(null);
   const [showResult, setShowResult] = useState(false);
   const [quizComplete, setQuizComplete] = useState(false);
-  const engine = useGameEngine({ initialLives: 3, initialScore: 0, autoStart: true });
+  const engine = useGameEngine({ 
+    initialLives: 3, 
+    initialScore: 0, 
+    autoStart: true,
+    gameType: 'energy'
+  });
 
   const questions = [
     {
@@ -81,6 +86,8 @@ const EnergyQuiz: React.FC<EnergyQuizProps> = ({ onComplete }) => {
       setShowResult(false);
     } else {
       setQuizComplete(true);
+      // Save game score to backend
+      engine.saveGameScore(engine.score);
     }
   };
 

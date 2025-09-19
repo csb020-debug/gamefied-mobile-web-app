@@ -18,7 +18,12 @@ interface CarbonCalculatorProps {
 }
 
 const CarbonCalculator: React.FC<CarbonCalculatorProps> = ({ onComplete }) => {
-  const engine = useGameEngine({ initialLives: 3, initialScore: 0, autoStart: true });
+  const engine = useGameEngine({ 
+    initialLives: 3, 
+    initialScore: 0, 
+    autoStart: true,
+    gameType: 'carbon'
+  });
   const [step, setStep] = useState(1);
   const [data, setData] = useState<{
     transport: number;

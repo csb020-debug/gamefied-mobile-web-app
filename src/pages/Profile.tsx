@@ -3,46 +3,35 @@ import Footer from "../components/learning-companion/Footer";
 import { Card } from "@/components/ui/card";
 import { Progress } from "@/components/ui/progress";
 import { BentoGrid, BentoGridItem } from "@/components/ui/bento-grid";
+import { useProfile } from "@/hooks/useProfile";
+import { useStudent } from "@/hooks/useStudent";
  
 
 const Profile: React.FC = () => {
-  const userStats = {
-    name: "Eco Champion",
-    level: 8,
-    currentXP: 1250,
-    nextLevelXP: 1500,
-    totalPoints: 3420,
-    streak: 15,
-    joinDate: "September 2024",
-    school: "Eco High School",
-    grade: "10th Grade"
-  };
+  const { userStats, badges, achievements, recentActivities, environmentalImpact, loading } = useProfile();
+  const { currentStudent, currentClass } = useStudent();
 
-  const badges = [
-    { name: "Tree Planter", icon: "🌳", description: "Planted 5+ trees", earned: true },
-    { name: "Quiz Master", icon: "🎯", description: "100% score on 10 quizzes", earned: true },
-    { name: "Waste Warrior", icon: "♻️", description: "Completed waste challenges", earned: true },
-    { name: "Energy Saver", icon: "⚡", description: "Reduced energy by 30%", earned: false },
-    { name: "Eco Educator", icon: "📚", description: "Taught others about environment", earned: false },
-    { name: "Carbon Fighter", icon: "🌍", description: "Offset 100kg of CO2", earned: true },
-  ];
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-background relative flex items-center justify-center">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto mb-4"></div>
+          <p className="text-muted-foreground">Loading profile...</p>
+        </div>
+      </div>
+    );
+  }
 
-  const recentActivities = [
-    { date: "Today", activity: "Completed Carbon Calculator Game", points: 85 },
-    { date: "Yesterday", activity: "Finished Renewable Energy Quiz", points: 75 },
-    { date: "2 days ago", activity: "Started Bike to School Challenge", points: 50 },
-    { date: "3 days ago", activity: "Completed Waste Sorting Game", points: 40 },
-    { date: "1 week ago", activity: "Planted a tree (Challenge)", points: 100 },
-  ];
-
-  const achievements = [
-    { title: "First Challenge", description: "Complete your first eco-challenge", completed: true },
-    { title: "Game Explorer", description: "Play all 3 environmental games", completed: true },
-    { title: "Learning Streak", description: "Maintain a 7-day learning streak", completed: true },
-    { title: "Points Collector", description: "Earn 1000+ eco-points", completed: true },
-    { title: "School Leader", description: "Reach top 10 in school rankings", completed: false },
-    { title: "Eco Master", description: "Reach Level 10", completed: false },
-  ];
+  if (!currentStudent || !currentClass || !userStats) {
+    return (
+      <div className="min-h-screen bg-background relative flex items-center justify-center">
+        <div className="text-center">
+          <h1 className="text-2xl font-bold mb-4">Join a Class First</h1>
+          <p className="text-muted-foreground mb-6">You need to join a class to view your profile.</p>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-white relative">
@@ -177,33 +166,33 @@ const Profile: React.FC = () => {
                title={"📈 Your Impact"}
                header={(
                  <div className="pt-2">
-                   <div className="space-y-2 sm:space-y-3">
-                     <div className="flex justify-between items-center">
-                       <span className="text-gray-600 text-xs sm:text-sm">Trees Planted</span>
-                       <span className="font-bold text-green-600 text-sm sm:text-base">7 🌳</span>
-                     </div>
-                     <div className="flex justify-between items-center">
-                       <span className="text-gray-600 text-xs sm:text-sm">CO2 Offset</span>
-                       <span className="font-bold text-blue-600 text-sm sm:text-base">156 kg 🌍</span>
-                     </div>
-                     <div className="flex justify-between items-center">
-                       <span className="text-gray-600 text-xs sm:text-sm">Waste Diverted</span>
-                       <span className="font-bold text-purple-600 text-sm sm:text-base">23 kg ♻️</span>
-                     </div>
-                     <div className="flex justify-between items-center">
-                       <span className="text-gray-600 text-xs sm:text-sm">Energy Saved</span>
-                       <span className="font-bold text-yellow-600 text-sm sm:text-base">450 kWh ⚡</span>
-                     </div>
-                     <div className="flex justify-between items-center">
-                       <span className="text-gray-600 text-xs sm:text-sm">Friends Inspired</span>
-                       <span className="font-bold text-pink-600 text-sm sm:text-base">12 people 👥</span>
-                     </div>
-                   </div>
-                   <div className="mt-4 sm:mt-6 p-3 sm:p-4 bg-[#B8EE7C]/15 rounded-xl text-center ring-1 ring-black/5">
-                     <div className="font-bold text-[#0A0E09] text-sm sm:text-base">Environmental Impact Score</div>
-                     <div className="text-xl sm:text-2xl font-black text-[#0A0E09]">A+</div>
-                     <div className="text-xs sm:text-sm text-gray-600">Keep up the amazing work! 🌟</div>
-                   </div>
+                    <div className="space-y-2 sm:space-y-3">
+                      <div className="flex justify-between items-center">
+                        <span className="text-gray-600 text-xs sm:text-sm">Trees Planted</span>
+                        <span className="font-bold text-green-600 text-sm sm:text-base">{environmentalImpact?.treesPlanted || 0} 🌳</span>
+                      </div>
+                      <div className="flex justify-between items-center">
+                        <span className="text-gray-600 text-xs sm:text-sm">CO2 Offset</span>
+                        <span className="font-bold text-blue-600 text-sm sm:text-base">{environmentalImpact?.co2Offset || 0} kg 🌍</span>
+                      </div>
+                      <div className="flex justify-between items-center">
+                        <span className="text-gray-600 text-xs sm:text-sm">Waste Recycled</span>
+                        <span className="font-bold text-purple-600 text-sm sm:text-base">{environmentalImpact?.wasteRecycled || 0} kg ♻️</span>
+                      </div>
+                      <div className="flex justify-between items-center">
+                        <span className="text-gray-600 text-xs sm:text-sm">Energy Saved</span>
+                        <span className="font-bold text-yellow-600 text-sm sm:text-base">{environmentalImpact?.energySaved || 0} kWh ⚡</span>
+                      </div>
+                      <div className="flex justify-between items-center">
+                        <span className="text-gray-600 text-xs sm:text-sm">Friends Inspired</span>
+                        <span className="font-bold text-pink-600 text-sm sm:text-base">{environmentalImpact?.friendsInspired || 0} people 👥</span>
+                      </div>
+                    </div>
+                    <div className="mt-4 sm:mt-6 p-3 sm:p-4 bg-[#B8EE7C]/15 rounded-xl text-center ring-1 ring-black/5">
+                      <div className="font-bold text-[#0A0E09] text-sm sm:text-base">Environmental Impact Score</div>
+                      <div className="text-xl sm:text-2xl font-black text-[#0A0E09]">{environmentalImpact?.score || 'B'}</div>
+                      <div className="text-xs sm:text-sm text-gray-600">Keep up the amazing work! 🌟</div>
+                    </div>
                 </div>
               )}
             />
