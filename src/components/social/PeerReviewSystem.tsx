@@ -33,6 +33,7 @@ interface PeerReview {
   updated_at: string;
   reviewer_name: string;
   reviewee_name: string;
+  is_edited?: boolean;
 }
 
 interface Assignment {

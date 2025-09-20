@@ -587,6 +587,41 @@ export type Database = {
           },
         ]
       }
+      school_admins: {
+        Row: {
+          created_at: string
+          id: string
+          permissions: Json | null
+          school_id: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          permissions?: Json | null
+          school_id: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          permissions?: Json | null
+          school_id?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "school_admins_school_id_fkey"
+            columns: ["school_id"]
+            isOneToOne: false
+            referencedRelation: "schools"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       schools: {
         Row: {
           address: string | null
@@ -747,6 +782,91 @@ export type Database = {
           },
         ]
       }
+      teachers: {
+        Row: {
+          created_at: string
+          email: string
+          full_name: string | null
+          id: string
+          is_active: boolean | null
+          school_id: string | null
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          email: string
+          full_name?: string | null
+          id?: string
+          is_active?: boolean | null
+          school_id?: string | null
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          email?: string
+          full_name?: string | null
+          id?: string
+          is_active?: boolean | null
+          school_id?: string | null
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "teachers_school_id_fkey"
+            columns: ["school_id"]
+            isOneToOne: false
+            referencedRelation: "schools"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      user_profiles: {
+        Row: {
+          created_at: string
+          email: string
+          full_name: string | null
+          id: string
+          is_active: boolean | null
+          role: string
+          school_id: string | null
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          email: string
+          full_name?: string | null
+          id?: string
+          is_active?: boolean | null
+          role?: string
+          school_id?: string | null
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          email?: string
+          full_name?: string | null
+          id?: string
+          is_active?: boolean | null
+          role?: string
+          school_id?: string | null
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "user_profiles_school_id_fkey"
+            columns: ["school_id"]
+            isOneToOne: false
+            referencedRelation: "schools"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
     }
     Views: {
       [_ in never]: never
@@ -754,6 +874,16 @@ export type Database = {
     Functions: {
       accept_teacher_invitation: {
         Args: { invitation_token_param: string }
+        Returns: Json
+      }
+      create_user_profile: {
+        Args: {
+          email_param: string
+          full_name_param?: string
+          role_param?: string
+          school_id_param?: string
+          user_id_param: string
+        }
         Returns: Json
       }
       generate_class_code: {
@@ -764,12 +894,45 @@ export type Database = {
         Args: Record<PropertyKey, never>
         Returns: string
       }
+      get_school_admins: {
+        Args: { school_id_param: string }
+        Returns: {
+          created_at: string
+          email: string
+          full_name: string
+          id: string
+          user_id: string
+        }[]
+      }
+      get_school_teachers: {
+        Args: { school_id_param: string }
+        Returns: {
+          created_at: string
+          email: string
+          full_name: string
+          id: string
+          is_active: boolean
+          user_id: string
+        }[]
+      }
+      get_user_role: {
+        Args: { user_id_param: string }
+        Returns: string
+      }
+      is_school_admin: {
+        Args: { school_id_param: string; user_id_param: string }
+        Returns: boolean
+      }
       send_teacher_invitation: {
         Args: {
           invited_by_param: string
           school_id_param: string
           teacher_email_param: string
         }
+        Returns: Json
+      }
+      update_teacher_status: {
+        Args: { is_active_param: boolean; teacher_id_param: string }
         Returns: Json
       }
     }

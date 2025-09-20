@@ -9,8 +9,13 @@ import Footer from "@/components/learning-companion/Footer";
 import Navbar from "@/components/learning-companion/Navbar";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Users, GraduationCap, School, ArrowRight } from "lucide-react";
+import { useAuth } from "@/hooks/useAuth";
+import { useStudent } from "@/hooks/useStudent";
 
 const Index: React.FC = () => {
+  const { user, userProfile } = useAuth();
+  const { currentStudent, currentClass } = useStudent();
+
   return (
     <div className="min-h-screen bg-background relative">
       <Hero />
@@ -18,8 +23,9 @@ const Index: React.FC = () => {
       <StudySmarter />
       <NoMoreStuck />
       
-      {/* Entry Points Section */}
-      <section className="py-24 px-6 lg:px-8 bg-gradient-to-br from-primary/5 to-secondary/5">
+      {/* Entry Points Section - Only show if user is not logged in */}
+      {!user && (
+        <section className="py-24 px-6 lg:px-8 bg-gradient-to-br from-primary/5 to-secondary/5">
         <div className="max-w-6xl mx-auto">
           <div className="text-center mb-16">
             <h2 className="text-4xl lg:text-5xl font-bold mb-6">
@@ -132,10 +138,12 @@ const Index: React.FC = () => {
                       <span>Custom curriculum integration</span>
                     </div>
                   </div>
-                  <Button variant="outline" className="w-full group" disabled>
-                    Coming Soon
-                    <ArrowRight className="ml-2 h-4 w-4 group-hover:translate-x-1 transition-transform" />
-                  </Button>
+                  <Link to="/schools/register" className="block">
+                    <Button variant="outline" className="w-full group">
+                      Register Your School
+                      <ArrowRight className="ml-2 h-4 w-4 group-hover:translate-x-1 transition-transform" />
+                    </Button>
+                  </Link>
                 </div>
               </CardContent>
             </Card>
@@ -148,6 +156,7 @@ const Index: React.FC = () => {
           </div>
         </div>
       </section>
+      )}
 
       <Footer />
     </div>

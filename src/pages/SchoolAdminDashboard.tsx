@@ -91,7 +91,7 @@ const SchoolAdminDashboard = () => {
     setLoading(true);
     try {
       // Get user's school admin information
-      const { data: adminData, error: adminError } = await supabase
+      const { data: adminData, error: adminError } = await (supabase as any)
         .from('school_admins')
         .select('school_id, schools(*)')
         .eq('user_id', user.id)
@@ -100,7 +100,7 @@ const SchoolAdminDashboard = () => {
       if (adminError) throw adminError;
 
       if (adminData) {
-        const school = adminData.schools;
+        const school = (adminData as any).schools;
         setSchoolInfo(school);
 
         // Load invitations for this school
@@ -114,14 +114,14 @@ const SchoolAdminDashboard = () => {
         setInvitations(invitationsData || []);
 
         // Load teachers for this school
-        const { data: teachersData, error: teachersError } = await supabase
+        const { data: teachersData, error: teachersError } = await (supabase as any)
           .rpc('get_school_teachers', { school_id_param: school.id });
 
         if (teachersError) throw teachersError;
         setTeachers(teachersData || []);
 
         // Load admins for this school
-        const { data: adminsData, error: adminsError } = await supabase
+        const { data: adminsData, error: adminsError } = await (supabase as any)
           .rpc('get_school_admins', { school_id_param: school.id });
 
         if (adminsError) throw adminsError;
@@ -144,7 +144,7 @@ const SchoolAdminDashboard = () => {
 
     setInviteLoading(true);
     try {
-      const { data, error } = await supabase.rpc('send_teacher_invitation', {
+      const { data, error } = await (supabase as any).rpc('send_teacher_invitation', {
         school_id_param: schoolInfo.id,
         teacher_email_param: newTeacherEmail.trim(),
         invited_by_param: user?.id
@@ -152,14 +152,14 @@ const SchoolAdminDashboard = () => {
 
       if (error) throw error;
 
-      if (data.success) {
+      if ((data as any)?.success) {
         // Send email notification
-        const invitationLink = `${window.location.origin}/teachers/invite/${data.invitation_token}`;
+        const invitationLink = `${window.location.origin}/teachers/invite/${(data as any).invitation_token}`;
         const emailResult = await sendTeacherInvitationEmail({
           teacherEmail: newTeacherEmail.trim(),
           schoolName: schoolInfo.name,
           invitationLink,
-          expiresAt: data.expires_at,
+          expiresAt: (data as any).expires_at,
           invitedBy: user?.email || 'School Administrator'
         });
 
@@ -181,7 +181,7 @@ const SchoolAdminDashboard = () => {
       } else {
         toast({
           title: "Error",
-          description: data.error || 'Failed to send invitation',
+          description: (data as any)?.error || 'Failed to send invitation',
           variant: "destructive",
         });
       }
@@ -202,7 +202,7 @@ const SchoolAdminDashboard = () => {
 
     try {
       // First, create a user profile for the admin
-      const { data: profileData, error: profileError } = await supabase.rpc('create_user_profile', {
+      const { data: profileData, error: profileError } = await (supabase as any).rpc('create_user_profile', {
         user_id_param: user?.id, // This should be the new admin's user ID
         email_param: newAdminEmail.trim(),
         role_param: 'school_admin',
@@ -229,14 +229,14 @@ const SchoolAdminDashboard = () => {
 
   const updateTeacherStatus = async (teacherId: string, isActive: boolean) => {
     try {
-      const { data, error } = await supabase.rpc('update_teacher_status', {
+      const { data, error } = await (supabase as any).rpc('update_teacher_status', {
         teacher_id_param: teacherId,
         is_active_param: isActive
       });
 
       if (error) throw error;
 
-      if (data.success) {
+      if ((data as any)?.success) {
         toast({
           title: "Teacher status updated",
           description: `Teacher has been ${isActive ? 'activated' : 'deactivated'}`,
@@ -245,7 +245,7 @@ const SchoolAdminDashboard = () => {
       } else {
         toast({
           title: "Error",
-          description: data.error || 'Failed to update teacher status',
+          description: (data as any)?.error || 'Failed to update teacher status',
           variant: "destructive",
         });
       }

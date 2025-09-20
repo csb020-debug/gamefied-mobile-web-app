@@ -1,21 +1,11 @@
 import { useState, useEffect } from 'react';
+import type { Tables } from '@/integrations/supabase/types';
 import { supabase } from '@/integrations/supabase/client';
 import { useStudent } from './useStudent';
+import { useAuth } from './useAuth';
 
-interface Challenge {
-  id: string;
-  title: string;
-  description: string;
-  type: 'game' | 'challenge' | 'quiz';
-  due_at: string | null;
-  created_at: string;
-  config: {
-    points: number;
-    instructions: string;
-    difficulty: string;
-    category: string;
-  };
-}
+type AssignmentRow = Tables<'assignments'>;
+type Challenge = AssignmentRow & { type: 'game' | 'challenge' | 'quiz' };
 
 interface Submission {
   id: string;
@@ -30,28 +20,88 @@ export const useChallenges = () => {
   const [submissions, setSubmissions] = useState<Submission[]>([]);
   const [loading, setLoading] = useState(true);
   const { currentStudent, currentClass } = useStudent();
+  const { user, userProfile } = useAuth();
 
   useEffect(() => {
-    if (currentClass) {
+    if (user && userProfile) {
       fetchChallenges();
       if (currentStudent) {
         fetchSubmissions();
       }
     }
-  }, [currentClass, currentStudent]);
+  }, [user, userProfile, currentStudent]);
 
   const fetchChallenges = async () => {
-    if (!currentClass) return;
+    if (!user || !userProfile) return;
+
+    // Check if Supabase is configured
+    const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
+    const supabaseKey = import.meta.env.VITE_SUPABASE_ANON_KEY;
+    
+    if (!supabaseUrl || !supabaseKey) {
+      console.error('Supabase environment variables are not configured');
+      setChallenges([]);
+      setLoading(false);
+      return;
+    }
 
     try {
-      const { data, error } = await supabase
+      let query = supabase
         .from('assignments')
         .select('*')
-        .eq('class_id', currentClass.id)
         .order('created_at', { ascending: false });
 
+      // For students, fetch challenges from their class
+      if (userProfile.role === 'student' && currentClass) {
+        query = query.eq('class_id', currentClass.id);
+      }
+      // For teachers, fetch challenges from their classes
+      else if (userProfile.role === 'teacher') {
+        const { data: teacherClasses, error: classError } = await supabase
+          .from('classes')
+          .select('id')
+          .eq('teacher_id', user.id);
+        
+        if (classError) throw classError;
+        
+        if (teacherClasses && teacherClasses.length > 0) {
+          const classIds = teacherClasses.map(cls => cls.id);
+          query = query.in('class_id', classIds);
+        } else {
+          setChallenges([]);
+          setLoading(false);
+          return;
+        }
+      }
+      // For school admins, fetch challenges from all classes in their school
+      else if (userProfile.role === 'school_admin' && userProfile.school_id) {
+        const { data: schoolClasses, error: classError } = await supabase
+          .from('classes')
+          .select('id')
+          .eq('school_id', userProfile.school_id);
+        
+        if (classError) throw classError;
+        
+        if (schoolClasses && schoolClasses.length > 0) {
+          const classIds = schoolClasses.map(cls => cls.id);
+          query = query.in('class_id', classIds);
+        } else {
+          setChallenges([]);
+          setLoading(false);
+          return;
+        }
+      }
+      // If no specific role or conditions, return empty
+      else {
+        setChallenges([]);
+        setLoading(false);
+        return;
+      }
+
+      const { data, error } = await query;
+
       if (error) throw error;
-      setChallenges(data || []);
+      setChallenges((data as any) || []);
     } catch (error) {
       console.error('Error fetching challenges:', error);
     } finally {

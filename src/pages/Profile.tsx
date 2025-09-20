@@ -5,11 +5,16 @@ import { Progress } from "@/components/ui/progress";
 import { BentoGrid, BentoGridItem } from "@/components/ui/bento-grid";
 import { useProfile } from "@/hooks/useProfile";
 import { useStudent } from "@/hooks/useStudent";
+import { useAuth } from "@/hooks/useAuth";
+import { useNavigate } from "react-router-dom";
+import { Button } from "@/components/ui/button";
  
 
 const Profile: React.FC = () => {
   const { userStats, badges, achievements, recentActivities, environmentalImpact, loading } = useProfile();
   const { currentStudent, currentClass } = useStudent();
+  const { user, userProfile } = useAuth();
+  const navigate = useNavigate();
 
   if (loading) {
     return (
@@ -22,12 +27,31 @@ const Profile: React.FC = () => {
     );
   }
 
-  if (!currentStudent || !currentClass || !userStats) {
+  // Check if user is authenticated
+  if (!user) {
+    return (
+      <div className="min-h-screen bg-background relative flex items-center justify-center">
+        <div className="text-center">
+          <h1 className="text-2xl font-bold mb-4">Please Sign In</h1>
+          <p className="text-muted-foreground mb-6">You need to sign in to view your profile.</p>
+          <Button onClick={() => navigate('/teachers/signup')}>
+            Sign In
+          </Button>
+        </div>
+      </div>
+    );
+  }
+
+  // For students, check if they've joined a class
+  if (userProfile?.role === 'student' && (!currentStudent || !currentClass || !userStats)) {
     return (
       <div className="min-h-screen bg-background relative flex items-center justify-center">
         <div className="text-center">
           <h1 className="text-2xl font-bold mb-4">Join a Class First</h1>
           <p className="text-muted-foreground mb-6">You need to join a class to view your profile.</p>
+          <Button onClick={() => navigate('/join')}>
+            Join Class
+          </Button>
         </div>
       </div>
     );

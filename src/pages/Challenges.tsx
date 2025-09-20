@@ -7,6 +7,7 @@ import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
 import { useChallenges } from "@/hooks/useChallenges";
 import { useStudent } from "@/hooks/useStudent";
+import { useAuth } from "@/hooks/useAuth";
 import { useNavigate } from "react-router-dom";
 import { Calendar, Target, BookOpen, GamepadIcon } from "lucide-react";
  
@@ -14,6 +15,7 @@ import { Calendar, Target, BookOpen, GamepadIcon } from "lucide-react";
 const Challenges: React.FC = () => {
   const { challenges, loading, getSubmissionForChallenge, completeChallenge, getChallengeStats } = useChallenges();
   const { currentStudent, currentClass } = useStudent();
+  const { user, userProfile } = useAuth();
   const navigate = useNavigate();
 
   const stats = getChallengeStats();
@@ -67,7 +69,23 @@ const Challenges: React.FC = () => {
     );
   }
 
-  if (!currentStudent || !currentClass) {
+  // Check if user is authenticated
+  if (!user) {
+    return (
+      <div className="min-h-screen bg-background relative flex items-center justify-center">
+        <div className="text-center">
+          <h1 className="text-2xl font-bold mb-4">Please Sign In</h1>
+          <p className="text-muted-foreground mb-6">You need to sign in to access challenges.</p>
+          <Button onClick={() => navigate('/teachers/signup')}>
+            Sign In
+          </Button>
+        </div>
+      </div>
+    );
+  }
+
+  // For students, check if they've joined a class
+  if (userProfile?.role === 'student' && (!currentStudent || !currentClass)) {
     return (
       <div className="min-h-screen bg-background relative flex items-center justify-center">
         <div className="text-center">

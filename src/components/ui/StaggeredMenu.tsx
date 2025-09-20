@@ -1,5 +1,7 @@
 import React, { useCallback, useLayoutEffect, useRef, useState } from 'react';
 import { gsap } from 'gsap';
+import { useNavigate } from 'react-router-dom';
+import { useAuth } from '@/hooks/useAuth';
 import './StaggeredMenu.css';
 import AnimatedThemeToggler from '@/components/magicui/animated-theme-toggler';
 
@@ -47,6 +49,8 @@ export const StaggeredMenu: React.FC<StaggeredMenuProps> = ({
   onMenuOpen,
   onMenuClose
 }: StaggeredMenuProps) => {
+  const navigate = useNavigate();
+  const { signOut } = useAuth();
   const [open, setOpen] = useState(false);
   const openRef = useRef(false);
   const panelRef = useRef<HTMLDivElement | null>(null);
@@ -329,6 +333,27 @@ export const StaggeredMenu: React.FC<StaggeredMenuProps> = ({
     });
   }, []);
 
+  const handleMenuItemClick = useCallback(async (item: StaggeredMenuItem) => {
+    if (item.label === 'Logout') {
+      await signOut();
+      navigate('/');
+    } else if (item.link.startsWith('/')) {
+      navigate(item.link);
+    } else {
+      window.location.href = item.link;
+    }
+    // Close menu after navigation
+    if (openRef.current) {
+      openRef.current = false;
+      setOpen(false);
+      onMenuClose?.();
+      playClose();
+      animateIcon(false);
+      animateColor(false);
+      animateText(false);
+    }
+  }, [signOut, navigate, onMenuClose, playClose, animateIcon, animateColor, animateText]);
+
   const toggleMenu = useCallback(() => {
     const target = !openRef.current;
     openRef.current = target;
@@ -412,12 +437,8 @@ export const StaggeredMenu: React.FC<StaggeredMenuProps> = ({
                     aria-label={it.ariaLabel} 
                     data-index={idx + 1}
                     onClick={(e) => {
-                      // For React Router navigation, we'll use window.location
-                      // This ensures navigation works properly
-                      if (it.link.startsWith('/')) {
-                        e.preventDefault();
-                        window.location.href = it.link;
-                      }
+                      e.preventDefault();
+                      handleMenuItemClick(it);
                     }}
                   >
                     <span className="sm-panel-itemLabel">{it.label}</span>

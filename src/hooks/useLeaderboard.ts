@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useStudent } from './useStudent';
+import { useAuth } from './useAuth';
 
 interface StudentRanking {
   rank: number;
@@ -26,12 +27,13 @@ export const useLeaderboard = () => {
   const [schoolLeaderboard, setSchoolLeaderboard] = useState<SchoolRanking[]>([]);
   const [loading, setLoading] = useState(true);
   const { currentStudent, currentClass } = useStudent();
+  const { user, userProfile } = useAuth();
 
   useEffect(() => {
-    if (currentClass) {
+    if (user && userProfile) {
       fetchLeaderboards();
     }
-  }, [currentClass]);
+  }, [user, userProfile]);
 
   const fetchLeaderboards = async () => {
     try {
@@ -47,11 +49,65 @@ export const useLeaderboard = () => {
   };
 
   const fetchStudentLeaderboard = async () => {
-    if (!currentClass) return;
+    if (!user || !userProfile) return;
+
+    // Check if Supabase is configured
+    const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
+    const supabaseKey = import.meta.env.VITE_SUPABASE_ANON_KEY;
+    
+    if (!supabaseUrl || !supabaseKey) {
+      console.error('Supabase environment variables are not configured');
+      setStudentLeaderboard([]);
+      return;
+    }
 
     try {
-      // Get students from the same class with their total points
-      const { data: students, error } = await supabase
+      let classFilter = {};
+      
+      // For students, only show their class
+      if (userProfile.role === 'student' && currentClass) {
+        classFilter = { class_id: currentClass.id };
+      }
+      // For teachers, show students from their classes
+      else if (userProfile.role === 'teacher') {
+        const { data: teacherClasses, error: classError } = await supabase
+          .from('classes')
+          .select('id')
+          .eq('teacher_id', user.id);
+        
+        if (classError) throw classError;
+        
+        if (teacherClasses && teacherClasses.length > 0) {
+          classFilter = { class_id: { in: teacherClasses.map(cls => cls.id) } };
+        } else {
+          setStudentLeaderboard([]);
+          return;
+        }
+      }
+      // For school admins, show students from all classes in their school
+      else if (userProfile.role === 'school_admin' && userProfile.school_id) {
+        const { data: schoolClasses, error: classError } = await supabase
+          .from('classes')
+          .select('id')
+          .eq('school_id', userProfile.school_id);
+        
+        if (classError) throw classError;
+        
+        if (schoolClasses && schoolClasses.length > 0) {
+          classFilter = { class_id: { in: schoolClasses.map(cls => cls.id) } };
+        } else {
+          setStudentLeaderboard([]);
+          return;
+        }
+      }
+      // If no specific role or conditions, return empty
+      else {
+        setStudentLeaderboard([]);
+        return;
+      }
+
+      // Get students with their total points
+      let query = supabase
         .from('students')
         .select(`
           id,
@@ -67,8 +123,18 @@ export const useLeaderboard = () => {
           submissions (
             score
           )
-        `)
-        .eq('class_id', currentClass.id);
+        `);
+
+      // Apply the appropriate filter
+      if (classFilter.class_id) {
+        if (Array.isArray(classFilter.class_id.in)) {
+          query = query.in('class_id', classFilter.class_id.in);
+        } else {
+          query = query.eq('class_id', classFilter.class_id);
+        }
+      }
+
+      const { data: students, error } = await query;
 
       if (error) throw error;
 

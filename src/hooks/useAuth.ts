@@ -73,7 +73,7 @@ export const useAuthState = () => {
 
   const loadUserProfile = async (userId: string) => {
     try {
-      const { data, error } = await supabase
+      const { data, error } = await (supabase as any)
         .from('user_profiles')
         .select('*')
         .eq('user_id', userId)
@@ -113,7 +113,7 @@ export const useAuthState = () => {
     }
 
     try {
-      const { data, error } = await supabase.rpc('create_user_profile', {
+      const { data, error } = await (supabase as any).rpc('create_user_profile', {
         user_id_param: user.id,
         email_param: email,
         full_name_param: fullName,
@@ -123,11 +123,11 @@ export const useAuthState = () => {
 
       if (error) throw error;
 
-      if (data.success) {
+      if ((data as any)?.success) {
         await loadUserProfile(user.id);
         return { error: null };
       } else {
-        return { error: { message: data.error || 'Failed to create profile' } };
+        return { error: { message: (data as any)?.error || 'Failed to create profile' } };
       }
     } catch (error: any) {
       return { error };

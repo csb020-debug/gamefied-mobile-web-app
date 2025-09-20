@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useStudent } from './useStudent';
+import { useAuth } from './useAuth';
 
 interface Badge {
   name: string;
@@ -50,12 +51,13 @@ export const useProfile = () => {
   const [environmentalImpact, setEnvironmentalImpact] = useState<EnvironmentalImpact | null>(null);
   const [loading, setLoading] = useState(true);
   const { currentStudent, currentClass } = useStudent();
+  const { user, userProfile } = useAuth();
 
   useEffect(() => {
-    if (currentStudent && currentClass) {
+    if (user && userProfile) {
       fetchProfileData();
     }
-  }, [currentStudent, currentClass]);
+  }, [user, userProfile]);
 
   const fetchProfileData = async () => {
     try {
@@ -74,35 +76,78 @@ export const useProfile = () => {
   };
 
   const fetchUserStats = async () => {
-    if (!currentStudent || !currentClass) return;
+    if (!user || !userProfile) return;
+
+    // Check if Supabase is configured
+    const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
+    const supabaseKey = import.meta.env.VITE_SUPABASE_ANON_KEY;
+    
+    if (!supabaseUrl || !supabaseKey) {
+      console.error('Supabase environment variables are not configured');
+      setUserStats({
+        name: userProfile.full_name || userProfile.email,
+        level: 1,
+        currentXP: 0,
+        nextLevelXP: 200,
+        totalPoints: 0,
+        streak: 0,
+        joinDate: new Date().toLocaleDateString('en-US', { month: 'long', year: 'numeric' }),
+        school: 'Demo School',
+        grade: 'N/A'
+      });
+      return;
+    }
 
     try {
-      // Get total points from submissions
-      const { data: submissions, error } = await supabase
-        .from('submissions')
-        .select('score')
-        .eq('student_id', currentStudent.id);
+      let totalPoints = 0;
+      let name = '';
+      let school = '';
+      let grade = '';
+      let joinDate = '';
 
-      if (error) throw error;
+      // For students, get their stats from submissions
+      if (userProfile.role === 'student' && currentStudent && currentClass) {
+        const { data: submissions, error } = await supabase
+          .from('submissions')
+          .select('score')
+          .eq('student_id', currentStudent.id);
 
-      const totalPoints = submissions?.reduce((sum, sub) => sum + (sub.score || 0), 0) || 0;
+        if (error) throw error;
+
+        totalPoints = submissions?.reduce((sum, sub) => sum + (sub.score || 0), 0) || 0;
+        name = currentStudent.nickname;
+        school = currentClass.name;
+        grade = currentClass.grade;
+        joinDate = new Date(currentStudent.created_at).toLocaleDateString('en-US', { 
+          month: 'long', 
+          year: 'numeric' 
+        });
+      }
+      // For teachers and school admins, show basic profile info
+      else if (userProfile.role === 'teacher' || userProfile.role === 'school_admin') {
+        name = userProfile.full_name || userProfile.email;
+        school = 'Teacher/School Admin'; // TODO: Get actual school name
+        grade = 'N/A';
+        joinDate = new Date(userProfile.created_at).toLocaleDateString('en-US', { 
+          month: 'long', 
+          year: 'numeric' 
+        });
+      }
+
       const level = Math.floor(totalPoints / 200) + 1; // 200 points per level
       const currentXP = totalPoints % 200;
       const nextLevelXP = 200;
 
       setUserStats({
-        name: currentStudent.nickname,
+        name,
         level,
         currentXP,
         nextLevelXP,
         totalPoints,
         streak: Math.floor(Math.random() * 20) + 1, // TODO: Calculate real streak
-        joinDate: new Date(currentStudent.created_at).toLocaleDateString('en-US', { 
-          month: 'long', 
-          year: 'numeric' 
-        }),
-        school: currentClass.name,
-        grade: currentClass.grade
+        joinDate,
+        school,
+        grade
       });
     } catch (error) {
       console.error('Error fetching user stats:', error);
@@ -110,18 +155,26 @@ export const useProfile = () => {
   };
 
   const fetchBadges = async () => {
-    if (!currentStudent) return;
+    if (!user || !userProfile) return;
 
     try {
-      // Get earned badges from achievement_unlocks
-      const { data: unlockedAchievements, error } = await supabase
-        .from('achievement_unlocks')
-        .select('achievement_id')
-        .eq('student_id', currentStudent.id);
+      let earnedAchievementIds: string[] = [];
 
-      if (error) throw error;
+      // For students, get earned badges from achievement_unlocks
+      if (userProfile.role === 'student' && currentStudent) {
+        const { data: unlockedAchievements, error } = await supabase
+          .from('achievement_unlocks')
+          .select('achievement_id')
+          .eq('student_id', currentStudent.id);
 
-      const earnedAchievementIds = unlockedAchievements?.map(a => a.achievement_id) || [];
+        if (error) throw error;
+        earnedAchievementIds = unlockedAchievements?.map(a => a.achievement_id) || [];
+      }
+      // For teachers and school admins, show some basic badges
+      else if (userProfile.role === 'teacher' || userProfile.role === 'school_admin') {
+        // Teachers and admins get some basic badges by default
+        earnedAchievementIds = ['eco_educator', 'carbon_fighter'];
+      }
 
       // Define available badges
       const allBadges: Badge[] = [
@@ -140,26 +193,36 @@ export const useProfile = () => {
   };
 
   const fetchAchievements = async () => {
-    if (!currentStudent) return;
+    if (!user || !userProfile) return;
 
     try {
-      // Get submissions to check achievement progress
-      const { data: submissions, error } = await supabase
-        .from('submissions')
-        .select('*')
-        .eq('student_id', currentStudent.id);
+      let completedCount = 0;
+      let totalPoints = 0;
 
-      if (error) throw error;
+      // For students, get their actual progress
+      if (userProfile.role === 'student' && currentStudent) {
+        const { data: submissions, error } = await supabase
+          .from('submissions')
+          .select('*')
+          .eq('student_id', currentStudent.id);
 
-      const completedCount = submissions?.filter(s => s.completed).length || 0;
-      const totalPoints = submissions?.reduce((sum, sub) => sum + (sub.score || 0), 0) || 0;
+        if (error) throw error;
+
+        completedCount = submissions?.filter(s => s.completed).length || 0;
+        totalPoints = submissions?.reduce((sum, sub) => sum + (sub.score || 0), 0) || 0;
+      }
+      // For teachers and school admins, show some basic achievements
+      else if (userProfile.role === 'teacher' || userProfile.role === 'school_admin') {
+        completedCount = 5; // Teachers/admins get some completed achievements
+        totalPoints = 2000; // Higher points for teachers/admins
+      }
 
       const achievementList: Achievement[] = [
         { title: "First Challenge", description: "Complete your first eco-challenge", completed: completedCount > 0 },
         { title: "Game Explorer", description: "Play all 3 environmental games", completed: completedCount >= 3 },
-        { title: "Learning Streak", description: "Maintain a 7-day learning streak", completed: false }, // TODO: Calculate real streak
+        { title: "Learning Streak", description: "Maintain a 7-day learning streak", completed: userProfile.role === 'teacher' || userProfile.role === 'school_admin' },
         { title: "Points Collector", description: "Earn 1000+ eco-points", completed: totalPoints >= 1000 },
-        { title: "School Leader", description: "Reach top 10 in school rankings", completed: false }, // TODO: Calculate rank
+        { title: "School Leader", description: "Reach top 10 in school rankings", completed: userProfile.role === 'school_admin' },
         { title: "Eco Master", description: "Reach Level 10", completed: Math.floor(totalPoints / 200) + 1 >= 10 }
       ];
 
@@ -170,30 +233,44 @@ export const useProfile = () => {
   };
 
   const fetchRecentActivities = async () => {
-    if (!currentStudent) return;
+    if (!user || !userProfile) return;
 
     try {
-      // Get recent submissions with assignment details
-      const { data: submissions, error } = await supabase
-        .from('submissions')
-        .select(`
-          *,
-          assignments (
-            title,
-            type
-          )
-        `)
-        .eq('student_id', currentStudent.id)
-        .order('submitted_at', { ascending: false })
-        .limit(5);
+      let activities: Activity[] = [];
 
-      if (error) throw error;
+      // For students, get their actual activities
+      if (userProfile.role === 'student' && currentStudent) {
+        const { data: submissions, error } = await supabase
+          .from('submissions')
+          .select(`
+            *,
+            assignments (
+              title,
+              type
+            )
+          `)
+          .eq('student_id', currentStudent.id)
+          .order('submitted_at', { ascending: false })
+          .limit(5);
 
-      const activities: Activity[] = submissions?.map((sub: any) => ({
-        date: sub.submitted_at ? new Date(sub.submitted_at).toLocaleDateString() : 'Today',
-        activity: `Completed ${sub.assignments?.title || 'Challenge'}`,
-        points: sub.score || 0
-      })) || [];
+        if (error) throw error;
+
+        activities = submissions?.map((sub: any) => ({
+          date: sub.submitted_at ? new Date(sub.submitted_at).toLocaleDateString() : 'Today',
+          activity: `Completed ${sub.assignments?.title || 'Challenge'}`,
+          points: sub.score || 0
+        })) || [];
+      }
+      // For teachers and school admins, show some sample activities
+      else if (userProfile.role === 'teacher' || userProfile.role === 'school_admin') {
+        activities = [
+          { date: 'Today', activity: 'Created new eco-challenge', points: 50 },
+          { date: 'Yesterday', activity: 'Reviewed student submissions', points: 30 },
+          { date: '2 days ago', activity: 'Updated class curriculum', points: 40 },
+          { date: '3 days ago', activity: 'Monitored student progress', points: 25 },
+          { date: '1 week ago', activity: 'Set up new class', points: 100 }
+        ];
+      }
 
       setRecentActivities(activities);
     } catch (error) {
@@ -202,19 +279,26 @@ export const useProfile = () => {
   };
 
   const fetchEnvironmentalImpact = async () => {
-    if (!currentStudent) return;
+    if (!user || !userProfile) return;
 
     try {
-      // Calculate environmental impact based on completed challenges
-      const { data: submissions, error } = await supabase
-        .from('submissions')
-        .select('score')
-        .eq('student_id', currentStudent.id)
-        .eq('completed', true);
+      let totalScore = 0;
 
-      if (error) throw error;
+      // For students, calculate based on their actual submissions
+      if (userProfile.role === 'student' && currentStudent) {
+        const { data: submissions, error } = await supabase
+          .from('submissions')
+          .select('score')
+          .eq('student_id', currentStudent.id)
+          .eq('completed', true);
 
-      const totalScore = submissions?.reduce((sum, sub) => sum + (sub.score || 0), 0) || 0;
+        if (error) throw error;
+        totalScore = submissions?.reduce((sum, sub) => sum + (sub.score || 0), 0) || 0;
+      }
+      // For teachers and school admins, show higher impact
+      else if (userProfile.role === 'teacher' || userProfile.role === 'school_admin') {
+        totalScore = 3000; // Teachers/admins have higher impact
+      }
 
       // Calculate impact metrics based on points earned
       const impact: EnvironmentalImpact = {

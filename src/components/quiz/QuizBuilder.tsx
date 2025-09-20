@@ -10,6 +10,7 @@ import { Badge } from '@/components/ui/badge';
 import { Plus, Trash2, Edit, Save, X } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
+import type { Json } from '@/integrations/supabase/types';
 
 interface Question {
   id: string;
@@ -85,12 +86,12 @@ const QuizBuilder: React.FC<QuizBuilderProps> = ({ classId, onQuizCreated }) => 
           title: quizTitle.trim(),
           description: quizDescription.trim(),
           type: 'quiz',
-          config: {
+          config: ({
             questions: questions,
             totalPoints: questions.reduce((sum, q) => sum + q.points, 0),
-            timeLimit: null, // Can be added later
+            timeLimit: null,
             instructions: 'Answer all questions to the best of your ability.'
-          }
+          } as unknown) as Json
         }])
         .select()
         .single();
