@@ -334,15 +334,7 @@ export const StaggeredMenu: React.FC<StaggeredMenuProps> = ({
   }, []);
 
   const handleMenuItemClick = useCallback(async (item: StaggeredMenuItem) => {
-    if (item.label === 'Logout') {
-      await signOut();
-      navigate('/');
-    } else if (item.link.startsWith('/')) {
-      navigate(item.link);
-    } else {
-      window.location.href = item.link;
-    }
-    // Close menu after navigation
+    // Close menu first to avoid accessibility issues
     if (openRef.current) {
       openRef.current = false;
       setOpen(false);
@@ -352,6 +344,34 @@ export const StaggeredMenu: React.FC<StaggeredMenuProps> = ({
       animateColor(false);
       animateText(false);
     }
+    
+    // Handle logout immediately without delay
+    if (item.label === 'Logout') {
+      try {
+        await signOut();
+        navigate('/');
+      } catch (error) {
+        console.error('Error during logout:', error);
+        // Still navigate to home even if logout fails
+        navigate('/');
+      }
+      return;
+    }
+    
+    // Handle login navigation
+    if (item.label === 'Login') {
+      navigate('/teachers/signup');
+      return;
+    }
+    
+    // Small delay to ensure menu is closed before navigation for other items
+    setTimeout(() => {
+      if (item.link.startsWith('/')) {
+        navigate(item.link);
+      } else {
+        window.location.href = item.link;
+      }
+    }, 100);
   }, [signOut, navigate, onMenuClose, playClose, animateIcon, animateColor, animateText]);
 
   const toggleMenu = useCallback(() => {
@@ -425,7 +445,14 @@ export const StaggeredMenu: React.FC<StaggeredMenuProps> = ({
         </div>
       </header>
 
-      <aside id="staggered-menu-panel" ref={panelRef} className="staggered-menu-panel" aria-hidden={!open}>
+      <aside 
+        id="staggered-menu-panel" 
+        ref={panelRef} 
+        className="staggered-menu-panel" 
+        aria-hidden={!open} 
+        inert={!open ? '' : undefined}
+        style={{ pointerEvents: open ? 'auto' : 'none' }}
+      >
         <div className="sm-panel-inner">
           <ul className="sm-panel-list" role="list" data-numbering={displayItemNumbering || undefined}>
             {items && items.length ? (

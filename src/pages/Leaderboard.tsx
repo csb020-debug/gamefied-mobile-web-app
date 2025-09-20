@@ -21,9 +21,9 @@ const Leaderboard: React.FC = () => {
   const studentStats = getStudentStats();
 
   // Fallback data for weekly toppers (this could be enhanced with real data)
-  const weeklyToppers = studentLeaderboard.slice(0, 3).map(student => ({
-    name: student.name,
-    points: Math.floor(student.points / 10), // Show weekly subset
+  const weeklyToppers = (studentLeaderboard || []).slice(0, 3).map(student => ({
+    name: student.name || 'Unknown Student',
+    points: Math.floor((student.points || 0) / 10), // Show weekly subset
     achievement: student.rank === 1 ? "Top Performer" : student.rank === 2 ? "Quiz Master" : "Eco Warrior"
   }));
 
@@ -108,7 +108,7 @@ const Leaderboard: React.FC = () => {
 
             <TabsContent value="students" className="space-y-4 sm:space-y-6">
               <div className="grid gap-3 sm:gap-4">
-                {studentLeaderboard.map((student) => (
+                {(studentLeaderboard || []).map((student) => (
                   <Card key={student.rank} className={`p-4 sm:p-6 ${student.isCurrentUser ? 'ring-2 ring-[#B8EE7C] bg-[#B8EE7C]/5' : ''}`}>
                     <div className="flex items-center justify-between">
                       <div className="flex items-center gap-3 sm:gap-4 min-w-0 flex-1">
@@ -160,7 +160,7 @@ const Leaderboard: React.FC = () => {
 
             <TabsContent value="schools" className="space-y-4 sm:space-y-6">
               <div className="grid gap-3 sm:gap-4">
-                {schoolLeaderboard.map((school) => (
+                {(schoolLeaderboard || []).map((school) => (
                   <Card key={school.rank} className="p-4 sm:p-6">
                     <div className="flex items-center justify-between">
                       <div className="flex items-center gap-3 sm:gap-4 min-w-0 flex-1">

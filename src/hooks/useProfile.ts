@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
-import { supabase } from '@/integrations/supabase/client';
+import DataService from '@/lib/dataService';
+import config from '@/lib/config';
 import { useStudent } from './useStudent';
 import { useAuth } from './useAuth';
 
@@ -55,18 +56,29 @@ export const useProfile = () => {
 
   useEffect(() => {
     if (user && userProfile) {
-      fetchProfileData();
+      fetchProfileData(userProfile);
+    } else if (user && !userProfile) {
+      // User is logged in but profile is still loading
+      setLoading(true);
+    } else {
+      // No user, clear data
+      setUserStats(null);
+      setBadges([]);
+      setAchievements([]);
+      setRecentActivities([]);
+      setEnvironmentalImpact(null);
+      setLoading(false);
     }
   }, [user, userProfile]);
 
-  const fetchProfileData = async () => {
+  const fetchProfileData = async (profile?: any) => {
     try {
       await Promise.all([
-        fetchUserStats(),
-        fetchBadges(),
-        fetchAchievements(),
-        fetchRecentActivities(),
-        fetchEnvironmentalImpact()
+        fetchUserStats(profile),
+        fetchBadges(profile),
+        fetchAchievements(profile),
+        fetchRecentActivities(profile),
+        fetchEnvironmentalImpact(profile)
       ]);
     } catch (error) {
       console.error('Error fetching profile data:', error);
@@ -75,8 +87,9 @@ export const useProfile = () => {
     }
   };
 
-  const fetchUserStats = async () => {
-    if (!user || !userProfile) return;
+  const fetchUserStats = async (profile?: any) => {
+    const currentProfile = profile || userProfile;
+    if (!user || !currentProfile) return;
 
     // Check if Supabase is configured
     const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
@@ -85,7 +98,7 @@ export const useProfile = () => {
     if (!supabaseUrl || !supabaseKey) {
       console.error('Supabase environment variables are not configured');
       setUserStats({
-        name: userProfile.full_name || userProfile.email,
+        name: currentProfile?.full_name || currentProfile?.email || 'User',
         level: 1,
         currentXP: 0,
         nextLevelXP: 200,
@@ -106,7 +119,7 @@ export const useProfile = () => {
       let joinDate = '';
 
       // For students, get their stats from submissions
-      if (userProfile.role === 'student' && currentStudent && currentClass) {
+      if (currentProfile.role === 'student' && currentStudent && currentClass) {
         const { data: submissions, error } = await supabase
           .from('submissions')
           .select('score')
@@ -124,11 +137,11 @@ export const useProfile = () => {
         });
       }
       // For teachers and school admins, show basic profile info
-      else if (userProfile.role === 'teacher' || userProfile.role === 'school_admin') {
-        name = userProfile.full_name || userProfile.email;
+      else if (currentProfile.role === 'teacher' || currentProfile.role === 'school_admin') {
+        name = currentProfile.full_name || currentProfile.email;
         school = 'Teacher/School Admin'; // TODO: Get actual school name
         grade = 'N/A';
-        joinDate = new Date(userProfile.created_at).toLocaleDateString('en-US', { 
+        joinDate = new Date(currentProfile.created_at).toLocaleDateString('en-US', { 
           month: 'long', 
           year: 'numeric' 
         });
@@ -154,14 +167,15 @@ export const useProfile = () => {
     }
   };
 
-  const fetchBadges = async () => {
-    if (!user || !userProfile) return;
+  const fetchBadges = async (profile?: any) => {
+    const currentProfile = profile || userProfile;
+    if (!user || !currentProfile) return;
 
     try {
       let earnedAchievementIds: string[] = [];
 
       // For students, get earned badges from achievement_unlocks
-      if (userProfile.role === 'student' && currentStudent) {
+      if (currentProfile.role === 'student' && currentStudent) {
         const { data: unlockedAchievements, error } = await supabase
           .from('achievement_unlocks')
           .select('achievement_id')
@@ -171,7 +185,7 @@ export const useProfile = () => {
         earnedAchievementIds = unlockedAchievements?.map(a => a.achievement_id) || [];
       }
       // For teachers and school admins, show some basic badges
-      else if (userProfile.role === 'teacher' || userProfile.role === 'school_admin') {
+      else if (currentProfile.role === 'teacher' || currentProfile.role === 'school_admin') {
         // Teachers and admins get some basic badges by default
         earnedAchievementIds = ['eco_educator', 'carbon_fighter'];
       }
@@ -192,15 +206,16 @@ export const useProfile = () => {
     }
   };
 
-  const fetchAchievements = async () => {
-    if (!user || !userProfile) return;
+  const fetchAchievements = async (profile?: any) => {
+    const currentProfile = profile || userProfile;
+    if (!user || !currentProfile) return;
 
     try {
       let completedCount = 0;
       let totalPoints = 0;
 
       // For students, get their actual progress
-      if (userProfile.role === 'student' && currentStudent) {
+      if (currentProfile.role === 'student' && currentStudent) {
         const { data: submissions, error } = await supabase
           .from('submissions')
           .select('*')
@@ -212,7 +227,7 @@ export const useProfile = () => {
         totalPoints = submissions?.reduce((sum, sub) => sum + (sub.score || 0), 0) || 0;
       }
       // For teachers and school admins, show some basic achievements
-      else if (userProfile.role === 'teacher' || userProfile.role === 'school_admin') {
+      else if (currentProfile.role === 'teacher' || currentProfile.role === 'school_admin') {
         completedCount = 5; // Teachers/admins get some completed achievements
         totalPoints = 2000; // Higher points for teachers/admins
       }
@@ -220,9 +235,9 @@ export const useProfile = () => {
       const achievementList: Achievement[] = [
         { title: "First Challenge", description: "Complete your first eco-challenge", completed: completedCount > 0 },
         { title: "Game Explorer", description: "Play all 3 environmental games", completed: completedCount >= 3 },
-        { title: "Learning Streak", description: "Maintain a 7-day learning streak", completed: userProfile.role === 'teacher' || userProfile.role === 'school_admin' },
+        { title: "Learning Streak", description: "Maintain a 7-day learning streak", completed: currentProfile.role === 'teacher' || currentProfile.role === 'school_admin' },
         { title: "Points Collector", description: "Earn 1000+ eco-points", completed: totalPoints >= 1000 },
-        { title: "School Leader", description: "Reach top 10 in school rankings", completed: userProfile.role === 'school_admin' },
+        { title: "School Leader", description: "Reach top 10 in school rankings", completed: currentProfile.role === 'school_admin' },
         { title: "Eco Master", description: "Reach Level 10", completed: Math.floor(totalPoints / 200) + 1 >= 10 }
       ];
 
@@ -232,14 +247,15 @@ export const useProfile = () => {
     }
   };
 
-  const fetchRecentActivities = async () => {
-    if (!user || !userProfile) return;
+  const fetchRecentActivities = async (profile?: any) => {
+    const currentProfile = profile || userProfile;
+    if (!user || !currentProfile) return;
 
     try {
       let activities: Activity[] = [];
 
       // For students, get their actual activities
-      if (userProfile.role === 'student' && currentStudent) {
+      if (currentProfile.role === 'student' && currentStudent) {
         const { data: submissions, error } = await supabase
           .from('submissions')
           .select(`
@@ -262,7 +278,7 @@ export const useProfile = () => {
         })) || [];
       }
       // For teachers and school admins, show some sample activities
-      else if (userProfile.role === 'teacher' || userProfile.role === 'school_admin') {
+      else if (currentProfile.role === 'teacher' || currentProfile.role === 'school_admin') {
         activities = [
           { date: 'Today', activity: 'Created new eco-challenge', points: 50 },
           { date: 'Yesterday', activity: 'Reviewed student submissions', points: 30 },
@@ -278,14 +294,15 @@ export const useProfile = () => {
     }
   };
 
-  const fetchEnvironmentalImpact = async () => {
-    if (!user || !userProfile) return;
+  const fetchEnvironmentalImpact = async (profile?: any) => {
+    const currentProfile = profile || userProfile;
+    if (!user || !currentProfile) return;
 
     try {
       let totalScore = 0;
 
       // For students, calculate based on their actual submissions
-      if (userProfile.role === 'student' && currentStudent) {
+      if (currentProfile.role === 'student' && currentStudent) {
         const { data: submissions, error } = await supabase
           .from('submissions')
           .select('score')
@@ -296,7 +313,7 @@ export const useProfile = () => {
         totalScore = submissions?.reduce((sum, sub) => sum + (sub.score || 0), 0) || 0;
       }
       // For teachers and school admins, show higher impact
-      else if (userProfile.role === 'teacher' || userProfile.role === 'school_admin') {
+      else if (currentProfile.role === 'teacher' || currentProfile.role === 'school_admin') {
         totalScore = 3000; // Teachers/admins have higher impact
       }
 

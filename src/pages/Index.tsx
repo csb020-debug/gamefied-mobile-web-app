@@ -11,6 +11,10 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Users, GraduationCap, School, ArrowRight } from "lucide-react";
 import { useAuth } from "@/hooks/useAuth";
 import { useStudent } from "@/hooks/useStudent";
+import DebugData from "@/components/DebugData";
+import SupabaseTest from "@/components/SupabaseTest";
+import IntegrationTest from "@/components/IntegrationTest";
+import EnvironmentCheck from "@/components/EnvironmentCheck";
 
 const Index: React.FC = () => {
   const { user, userProfile } = useAuth();
@@ -18,6 +22,10 @@ const Index: React.FC = () => {
 
   return (
     <div className="min-h-screen bg-background relative">
+      <EnvironmentCheck />
+      <SupabaseTest />
+      <DebugData />
+      <IntegrationTest />
       <Hero />
       <Features />
       <StudySmarter />

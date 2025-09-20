@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import type { Tables } from '@/integrations/supabase/types';
-import { supabase } from '@/integrations/supabase/client';
+import DataService from '@/lib/dataService';
+import config from '@/lib/config';
 import { useStudent } from './useStudent';
 import { useAuth } from './useAuth';
 
@@ -24,21 +25,33 @@ export const useChallenges = () => {
 
   useEffect(() => {
     if (user && userProfile) {
-      fetchChallenges();
+      fetchChallenges(userProfile);
       if (currentStudent) {
         fetchSubmissions();
       }
+    } else if (user && !userProfile) {
+      // User is logged in but profile is still loading
+      setLoading(true);
+    } else {
+      // No user, clear data
+      setChallenges([]);
+      setSubmissions([]);
+      setLoading(false);
     }
   }, [user, userProfile, currentStudent]);
 
-  const fetchChallenges = async () => {
-    if (!user || !userProfile) return;
-
-    // Check if Supabase is configured
-    const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
-    const supabaseKey = import.meta.env.VITE_SUPABASE_ANON_KEY;
+  const fetchChallenges = async (profile?: any) => {
+    const currentProfile = profile || userProfile;
+    console.log('fetchChallenges called', { user: !!user, userProfile: !!currentProfile });
     
-    if (!supabaseUrl || !supabaseKey) {
+    if (!user || !currentProfile) {
+      console.log('No user or userProfile, returning early');
+      setChallenges([]);
+      setLoading(false);
+      return;
+    }
+
+    if (!config.isConfigured()) {
       console.error('Supabase environment variables are not configured');
       setChallenges([]);
       setLoading(false);
@@ -46,50 +59,19 @@ export const useChallenges = () => {
     }
 
     try {
-      let query = supabase
-        .from('assignments')
-        .select('*')
-        .order('created_at', { ascending: false });
+      let filters: any = {};
 
       // For students, fetch challenges from their class
-      if (userProfile.role === 'student' && currentClass) {
-        query = query.eq('class_id', currentClass.id);
+      if (currentProfile.role === 'student' && currentClass) {
+        filters.classId = currentClass.id;
       }
       // For teachers, fetch challenges from their classes
-      else if (userProfile.role === 'teacher') {
-        const { data: teacherClasses, error: classError } = await supabase
-          .from('classes')
-          .select('id')
-          .eq('teacher_id', user.id);
-        
-        if (classError) throw classError;
-        
-        if (teacherClasses && teacherClasses.length > 0) {
-          const classIds = teacherClasses.map(cls => cls.id);
-          query = query.in('class_id', classIds);
-        } else {
-          setChallenges([]);
-          setLoading(false);
-          return;
-        }
+      else if (currentProfile.role === 'teacher') {
+        filters.teacherId = user.id;
       }
       // For school admins, fetch challenges from all classes in their school
-      else if (userProfile.role === 'school_admin' && userProfile.school_id) {
-        const { data: schoolClasses, error: classError } = await supabase
-          .from('classes')
-          .select('id')
-          .eq('school_id', userProfile.school_id);
-        
-        if (classError) throw classError;
-        
-        if (schoolClasses && schoolClasses.length > 0) {
-          const classIds = schoolClasses.map(cls => cls.id);
-          query = query.in('class_id', classIds);
-        } else {
-          setChallenges([]);
-          setLoading(false);
-          return;
-        }
+      else if (currentProfile.role === 'school_admin' && currentProfile.school_id) {
+        filters.schoolId = currentProfile.school_id;
       }
       // If no specific role or conditions, return empty
       else {
@@ -98,12 +80,11 @@ export const useChallenges = () => {
         return;
       }
 
-      const { data, error } = await query;
-
-      if (error) throw error;
-      setChallenges((data as any) || []);
+      const assignments = await DataService.getAssignments(filters);
+      setChallenges(assignments as any);
     } catch (error) {
       console.error('Error fetching challenges:', error);
+      setChallenges([]);
     } finally {
       setLoading(false);
     }
@@ -113,13 +94,13 @@ export const useChallenges = () => {
     if (!currentStudent) return;
 
     try {
-      const { data, error } = await supabase
-        .from('submissions')
-        .select('*')
-        .eq('student_id', currentStudent.id);
+      if (!config.isConfigured()) {
+        console.error('Supabase not configured');
+        return;
+      }
 
-      if (error) throw error;
-      setSubmissions(data || []);
+      const submissions = await DataService.getSubmissions(currentStudent.id);
+      setSubmissions(submissions);
     } catch (error) {
       console.error('Error fetching submissions:', error);
     }
@@ -133,23 +114,20 @@ export const useChallenges = () => {
     if (!currentStudent) return;
 
     try {
-      const { data, error } = await supabase
-        .from('submissions')
-        .upsert([{
-          assignment_id: challengeId,
-          student_id: currentStudent.id,
-          score: score,
-          completed: true,
-          submitted_at: new Date().toISOString()
-        }])
-        .select()
-        .single();
+      if (!config.isConfigured()) {
+        throw new Error('Supabase not configured');
+      }
 
-      if (error) throw error;
+      const submission = await DataService.createSubmission({
+        assignment_id: challengeId,
+        student_id: currentStudent.id,
+        score: score,
+        completed: true
+      });
       
       // Refresh submissions
       await fetchSubmissions();
-      return data;
+      return submission;
     } catch (error) {
       console.error('Error completing challenge:', error);
       throw error;

@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
-import { supabase } from '@/integrations/supabase/client';
+import DataService from '@/lib/dataService';
+import config from '@/lib/config';
 import { useStudent } from './useStudent';
 import { useAuth } from './useAuth';
 
@@ -31,14 +32,30 @@ export const useLeaderboard = () => {
 
   useEffect(() => {
     if (user && userProfile) {
-      fetchLeaderboards();
+      fetchLeaderboards(userProfile);
+    } else if (user && !userProfile) {
+      // User is logged in but profile is still loading
+      setLoading(true);
+    } else {
+      // No user, clear data
+      setStudentLeaderboard([]);
+      setSchoolLeaderboard([]);
+      setLoading(false);
     }
   }, [user, userProfile]);
 
-  const fetchLeaderboards = async () => {
+  const fetchLeaderboards = async (profile?: any) => {
     try {
+      if (!config.isConfigured()) {
+        console.error('Supabase not configured');
+        setStudentLeaderboard([]);
+        setSchoolLeaderboard([]);
+        setLoading(false);
+        return;
+      }
+
       await Promise.all([
-        fetchStudentLeaderboard(),
+        fetchStudentLeaderboard(profile),
         fetchSchoolLeaderboard()
       ]);
     } catch (error) {
@@ -48,57 +65,24 @@ export const useLeaderboard = () => {
     }
   };
 
-  const fetchStudentLeaderboard = async () => {
-    if (!user || !userProfile) return;
-
-    // Check if Supabase is configured
-    const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
-    const supabaseKey = import.meta.env.VITE_SUPABASE_ANON_KEY;
-    
-    if (!supabaseUrl || !supabaseKey) {
-      console.error('Supabase environment variables are not configured');
-      setStudentLeaderboard([]);
-      return;
-    }
+  const fetchStudentLeaderboard = async (profile?: any) => {
+    const currentProfile = profile || userProfile;
+    if (!user || !currentProfile) return;
 
     try {
-      let classFilter = {};
+      let filters: any = {};
       
       // For students, only show their class
-      if (userProfile.role === 'student' && currentClass) {
-        classFilter = { class_id: currentClass.id };
+      if (currentProfile.role === 'student' && currentClass) {
+        filters.classId = currentClass.id;
       }
       // For teachers, show students from their classes
-      else if (userProfile.role === 'teacher') {
-        const { data: teacherClasses, error: classError } = await supabase
-          .from('classes')
-          .select('id')
-          .eq('teacher_id', user.id);
-        
-        if (classError) throw classError;
-        
-        if (teacherClasses && teacherClasses.length > 0) {
-          classFilter = { class_id: { in: teacherClasses.map(cls => cls.id) } };
-        } else {
-          setStudentLeaderboard([]);
-          return;
-        }
+      else if (currentProfile.role === 'teacher') {
+        filters.teacherId = user.id;
       }
       // For school admins, show students from all classes in their school
-      else if (userProfile.role === 'school_admin' && userProfile.school_id) {
-        const { data: schoolClasses, error: classError } = await supabase
-          .from('classes')
-          .select('id')
-          .eq('school_id', userProfile.school_id);
-        
-        if (classError) throw classError;
-        
-        if (schoolClasses && schoolClasses.length > 0) {
-          classFilter = { class_id: { in: schoolClasses.map(cls => cls.id) } };
-        } else {
-          setStudentLeaderboard([]);
-          return;
-        }
+      else if (currentProfile.role === 'school_admin' && currentProfile.school_id) {
+        filters.schoolId = currentProfile.school_id;
       }
       // If no specific role or conditions, return empty
       else {
@@ -106,60 +90,15 @@ export const useLeaderboard = () => {
         return;
       }
 
-      // Get students with their total points
-      let query = supabase
-        .from('students')
-        .select(`
-          id,
-          nickname,
-          class_id,
-          classes (
-            name,
-            school_id,
-            schools (
-              name
-            )
-          ),
-          submissions (
-            score
-          )
-        `);
+      const rankings = await DataService.getStudentLeaderboard(filters);
+      
+      // Mark current user if they're a student
+      const rankingsWithCurrentUser = rankings.map(ranking => ({
+        ...ranking,
+        isCurrentUser: currentStudent?.id === ranking.studentId
+      }));
 
-      // Apply the appropriate filter
-      if (classFilter.class_id) {
-        if (Array.isArray(classFilter.class_id.in)) {
-          query = query.in('class_id', classFilter.class_id.in);
-        } else {
-          query = query.eq('class_id', classFilter.class_id);
-        }
-      }
-
-      const { data: students, error } = await query;
-
-      if (error) throw error;
-
-      // Calculate rankings
-      const rankings = students
-        ?.map((student: any) => {
-          const totalPoints = student.submissions?.reduce((sum: number, sub: any) => sum + (sub.score || 0), 0) || 0;
-          return {
-            rank: 0, // Will be set after sorting
-            name: student.nickname,
-            school: student.classes?.schools?.name || currentClass.name,
-            points: totalPoints,
-            streak: Math.floor(Math.random() * 20) + 1, // TODO: Calculate real streak
-            badge: '',
-            isCurrentUser: currentStudent?.id === student.id
-          };
-        })
-        .sort((a: any, b: any) => b.points - a.points)
-        .map((student: any, index: number) => ({
-          ...student,
-          rank: index + 1,
-          badge: index === 0 ? '🥇' : index === 1 ? '🥈' : index === 2 ? '🥉' : ''
-        })) || [];
-
-      setStudentLeaderboard(rankings);
+      setStudentLeaderboard(rankingsWithCurrentUser);
     } catch (error) {
       console.error('Error fetching student leaderboard:', error);
     }
@@ -167,55 +106,7 @@ export const useLeaderboard = () => {
 
   const fetchSchoolLeaderboard = async () => {
     try {
-      // Get aggregated school data
-      const { data: schools, error } = await supabase
-        .from('schools')
-        .select(`
-          id,
-          name,
-          classes (
-            id,
-            students (
-              id,
-              submissions (
-                score
-              )
-            )
-          )
-        `);
-
-      if (error) throw error;
-
-      // Calculate school rankings
-      const rankings = schools
-        ?.map((school: any) => {
-          let totalPoints = 0;
-          let studentCount = 0;
-
-          school.classes?.forEach((cls: any) => {
-            cls.students?.forEach((student: any) => {
-              studentCount++;
-              const studentPoints = student.submissions?.reduce((sum: number, sub: any) => sum + (sub.score || 0), 0) || 0;
-              totalPoints += studentPoints;
-            });
-          });
-
-          return {
-            rank: 0, // Will be set after sorting
-            name: school.name,
-            totalPoints,
-            students: studentCount,
-            avgPoints: studentCount > 0 ? Math.round(totalPoints / studentCount) : 0,
-            badge: ''
-          };
-        })
-        .sort((a: any, b: any) => b.totalPoints - a.totalPoints)
-        .map((school: any, index: number) => ({
-          ...school,
-          rank: index + 1,
-          badge: index === 0 ? '🏆' : index === 1 ? '🥈' : index === 2 ? '🥉' : ''
-        })) || [];
-
+      const rankings = await DataService.getSchoolLeaderboard();
       setSchoolLeaderboard(rankings);
     } catch (error) {
       console.error('Error fetching school leaderboard:', error);

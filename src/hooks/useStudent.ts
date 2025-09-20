@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
-import { supabase } from '@/integrations/supabase/client';
+import DataService from '@/lib/dataService';
+import config from '@/lib/config';
 
 interface Student {
   id: string;
@@ -37,14 +38,15 @@ export const useStudent = () => {
 
   const fetchClassData = async (classId: string) => {
     try {
-      const { data, error } = await supabase
-        .from('classes')
-        .select('*')
-        .eq('id', classId)
-        .single();
+      if (!config.isConfigured()) {
+        console.error('Supabase not configured');
+        return;
+      }
 
-      if (error) throw error;
-      setCurrentClass(data);
+      const classData = await DataService.getStudentByClassCode(classId);
+      if (classData) {
+        setCurrentClass(classData);
+      }
     } catch (error) {
       console.error('Error fetching class data:', error);
     }
@@ -52,44 +54,27 @@ export const useStudent = () => {
 
   const joinClass = async (classCode: string, nickname: string) => {
     try {
-      // First, find the class by code
-      const { data: classData, error: classError } = await supabase
-        .from('classes')
-        .select('*')
-        .eq('class_code', classCode.toUpperCase())
-        .single();
+      if (!config.isConfigured()) {
+        return { error: 'Supabase not configured' };
+      }
 
-      if (classError || !classData) {
+      // First, find the class by code
+      const classData = await DataService.getStudentByClassCode(classCode);
+      if (!classData) {
         return { error: 'Class not found. Please check the class code.' };
       }
 
       // Check if nickname is already taken in this class
-      const { data: existingStudent, error: checkError } = await supabase
-        .from('students')
-        .select('*')
-        .eq('class_id', classData.id)
-        .eq('nickname', nickname)
-        .maybeSingle();
-
-      if (checkError) {
-        return { error: 'Error checking nickname availability.' };
-      }
-
-      if (existingStudent) {
+      const isAvailable = await DataService.checkNicknameAvailability(classData.id, nickname);
+      if (!isAvailable) {
         return { error: 'This nickname is already taken in this class.' };
       }
 
       // Create new student
-      const { data: newStudent, error: insertError } = await supabase
-        .from('students')
-        .insert({
-          class_id: classData.id,
-          nickname: nickname
-        })
-        .select()
-        .single();
-
-      if (insertError) throw insertError;
+      const newStudent = await DataService.createStudent({
+        class_id: classData.id,
+        nickname: nickname
+      });
 
       // Store student data in localStorage
       localStorage.setItem('eco_quest_student', JSON.stringify(newStudent));

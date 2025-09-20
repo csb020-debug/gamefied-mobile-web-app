@@ -1,6 +1,8 @@
 import { useState, useEffect, createContext, useContext } from 'react';
 import { User, Session } from '@supabase/supabase-js';
 import { supabase } from '@/integrations/supabase/client';
+import DataService from '@/lib/dataService';
+import config from '@/lib/config';
 
 interface UserProfile {
   id: string;
@@ -39,20 +41,29 @@ export const useAuthState = () => {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
+    console.log('useAuth: Setting up auth state listener');
+    
+    let isInitialized = false;
+    
     // Set up auth state listener FIRST
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
       async (event, session) => {
+        console.log('useAuth: Auth state changed', { event, hasUser: !!session?.user });
         setSession(session);
         setUser(session?.user ?? null);
         
         // Load user profile when user changes
         if (session?.user) {
+          console.log('useAuth: Loading user profile for user:', session.user.id);
           await loadUserProfile(session.user.id);
         } else {
           setUserProfile(null);
         }
         
-        setLoading(false);
+        if (!isInitialized) {
+          setLoading(false);
+          isInitialized = true;
+        }
       }
     );
 
@@ -65,7 +76,10 @@ export const useAuthState = () => {
         await loadUserProfile(session.user.id);
       }
       
-      setLoading(false);
+      if (!isInitialized) {
+        setLoading(false);
+        isInitialized = true;
+      }
     });
 
     return () => subscription.unsubscribe();
@@ -73,20 +87,76 @@ export const useAuthState = () => {
 
   const loadUserProfile = async (userId: string) => {
     try {
-      const { data, error } = await (supabase as any)
-        .from('user_profiles')
-        .select('*')
-        .eq('user_id', userId)
-        .single();
-
-      if (error && error.code !== 'PGRST116') {
-        console.error('Error loading user profile:', error);
+      console.log('loadUserProfile: Attempting to load profile for user:', userId);
+      
+      if (!config.isConfigured()) {
+        console.error('Supabase not configured, creating fallback profile');
+        const currentUser = user || { email: 'unknown@example.com', user_metadata: {} };
+        setUserProfile({
+          id: 'temp',
+          user_id: userId,
+          email: currentUser.email || 'unknown@example.com',
+          full_name: currentUser.user_metadata?.full_name || 'User',
+          role: 'student',
+          is_active: true,
+          school_id: null,
+          created_at: new Date().toISOString(),
+          updated_at: new Date().toISOString()
+        });
         return;
       }
 
-      setUserProfile(data);
+      const profile = await DataService.getUserProfile(userId);
+      
+      if (profile) {
+        console.log('Loaded user profile:', profile);
+        setUserProfile(profile);
+      } else {
+        console.log('User profile not found, creating default profile');
+        const currentUser = user || { email: 'unknown@example.com', user_metadata: {} };
+        const defaultProfile = {
+          user_id: userId,
+          email: currentUser.email || 'unknown@example.com',
+          full_name: currentUser.user_metadata?.full_name || 'User',
+          role: 'student' as const,
+          is_active: true
+        };
+        
+        try {
+          const newProfile = await DataService.createUserProfile(defaultProfile);
+          console.log('Created new user profile:', newProfile);
+          setUserProfile(newProfile);
+        } catch (createError) {
+          console.error('Error creating user profile:', createError);
+          // Set a fallback profile
+          setUserProfile({
+            id: 'temp',
+            user_id: userId,
+            email: currentUser.email || 'unknown@example.com',
+            full_name: currentUser.user_metadata?.full_name || 'User',
+            role: 'student',
+            is_active: true,
+            school_id: null,
+            created_at: new Date().toISOString(),
+            updated_at: new Date().toISOString()
+          });
+        }
+      }
     } catch (error) {
       console.error('Error loading user profile:', error);
+      // Set a fallback profile on any error
+      const currentUser = user || { email: 'unknown@example.com', user_metadata: {} };
+      setUserProfile({
+        id: 'temp',
+        user_id: userId,
+        email: currentUser.email || 'unknown@example.com',
+        full_name: currentUser.user_metadata?.full_name || 'User',
+        role: 'student',
+        is_active: true,
+        school_id: null,
+        created_at: new Date().toISOString(),
+        updated_at: new Date().toISOString()
+      });
     }
   };
 
@@ -103,8 +173,20 @@ export const useAuthState = () => {
   };
 
   const signOut = async () => {
-    await supabase.auth.signOut();
-    setUserProfile(null);
+    try {
+      console.log('useAuth: Starting sign out process');
+      await supabase.auth.signOut();
+      setUserProfile(null);
+      setUser(null);
+      setSession(null);
+      console.log('useAuth: Sign out completed successfully');
+    } catch (error) {
+      console.error('useAuth: Error during sign out:', error);
+      // Force clear local state even if Supabase signOut fails
+      setUserProfile(null);
+      setUser(null);
+      setSession(null);
+    }
   };
 
   const createUserProfile = async (email: string, fullName?: string, role: string = 'teacher', schoolId?: string) => {
@@ -113,23 +195,22 @@ export const useAuthState = () => {
     }
 
     try {
-      const { data, error } = await (supabase as any).rpc('create_user_profile', {
-        user_id_param: user.id,
-        email_param: email,
-        full_name_param: fullName,
-        role_param: role,
-        school_id_param: schoolId
-      });
+      console.log('createUserProfile: Creating profile for user:', user.id, 'with role:', role);
+      
+      const profileData = {
+        user_id: user.id,
+        email: email,
+        full_name: fullName,
+        role: role as 'school_admin' | 'teacher' | 'student',
+        school_id: schoolId,
+        is_active: true
+      };
 
-      if (error) throw error;
-
-      if ((data as any)?.success) {
-        await loadUserProfile(user.id);
-        return { error: null };
-      } else {
-        return { error: { message: (data as any)?.error || 'Failed to create profile' } };
-      }
+      const newProfile = await DataService.createUserProfile(profileData);
+      setUserProfile(newProfile);
+      return { error: null };
     } catch (error: any) {
+      console.error('createUserProfile: Exception:', error);
       return { error };
     }
   };

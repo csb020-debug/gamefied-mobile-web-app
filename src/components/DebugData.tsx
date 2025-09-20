@@ -4,6 +4,7 @@ import { useStudent } from '@/hooks/useStudent';
 import { useChallenges } from '@/hooks/useChallenges';
 import { useLeaderboard } from '@/hooks/useLeaderboard';
 import { useProfile } from '@/hooks/useProfile';
+import config from '@/lib/config';
 
 const DebugData: React.FC = () => {
   const { user, userProfile, loading: authLoading } = useAuth();
@@ -12,8 +13,8 @@ const DebugData: React.FC = () => {
   const { studentLeaderboard, loading: leaderboardLoading } = useLeaderboard();
   const { userStats, loading: profileLoading } = useProfile();
 
-  const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
-  const supabaseKey = import.meta.env.VITE_SUPABASE_ANON_KEY;
+  const supabaseUrl = config.supabase.url;
+  const supabaseKey = config.supabase.anonKey;
 
   return (
     <div className="p-4 bg-gray-100 m-4 rounded">
