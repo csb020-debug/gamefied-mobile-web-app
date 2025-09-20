@@ -90,19 +90,7 @@ export const useAuthState = () => {
       console.log('loadUserProfile: Attempting to load profile for user:', userId);
       
       if (!config.isConfigured()) {
-        console.error('Supabase not configured, creating fallback profile');
-        const currentUser = user || { email: 'unknown@example.com', user_metadata: {} };
-        setUserProfile({
-          id: 'temp',
-          user_id: userId,
-          email: currentUser.email || 'unknown@example.com',
-          full_name: currentUser.user_metadata?.full_name || 'User',
-          role: 'student',
-          is_active: true,
-          school_id: null,
-          created_at: new Date().toISOString(),
-          updated_at: new Date().toISOString()
-        });
+        console.error('Supabase not configured - cannot load profile');
         return;
       }
 
@@ -110,53 +98,17 @@ export const useAuthState = () => {
       
       if (profile) {
         console.log('Loaded user profile:', profile);
-        setUserProfile(profile);
+        setUserProfile({
+          ...profile,
+          role: profile.role as 'school_admin' | 'teacher' | 'student'
+        });
       } else {
-        console.log('User profile not found, creating default profile');
-        const currentUser = user || { email: 'unknown@example.com', user_metadata: {} };
-        const defaultProfile = {
-          user_id: userId,
-          email: currentUser.email || 'unknown@example.com',
-          full_name: currentUser.user_metadata?.full_name || 'User',
-          role: 'student' as const,
-          is_active: true
-        };
-        
-        try {
-          const newProfile = await DataService.createUserProfile(defaultProfile);
-          console.log('Created new user profile:', newProfile);
-          setUserProfile(newProfile);
-        } catch (createError) {
-          console.error('Error creating user profile:', createError);
-          // Set a fallback profile
-          setUserProfile({
-            id: 'temp',
-            user_id: userId,
-            email: currentUser.email || 'unknown@example.com',
-            full_name: currentUser.user_metadata?.full_name || 'User',
-            role: 'student',
-            is_active: true,
-            school_id: null,
-            created_at: new Date().toISOString(),
-            updated_at: new Date().toISOString()
-          });
-        }
+        console.log('User profile not found - user needs to complete registration flow');
+        setUserProfile(null);
       }
     } catch (error) {
       console.error('Error loading user profile:', error);
-      // Set a fallback profile on any error
-      const currentUser = user || { email: 'unknown@example.com', user_metadata: {} };
-      setUserProfile({
-        id: 'temp',
-        user_id: userId,
-        email: currentUser.email || 'unknown@example.com',
-        full_name: currentUser.user_metadata?.full_name || 'User',
-        role: 'student',
-        is_active: true,
-        school_id: null,
-        created_at: new Date().toISOString(),
-        updated_at: new Date().toISOString()
-      });
+      setUserProfile(null);
     }
   };
 
@@ -207,7 +159,10 @@ export const useAuthState = () => {
       };
 
       const newProfile = await DataService.createUserProfile(profileData);
-      setUserProfile(newProfile);
+      setUserProfile({
+        ...newProfile,
+        role: newProfile.role as 'school_admin' | 'teacher' | 'student'
+      });
       return { error: null };
     } catch (error: any) {
       console.error('createUserProfile: Exception:', error);

@@ -5,6 +5,7 @@ import { Input } from '@/components/ui/input';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { useToast } from '@/hooks/use-toast';
 import { useStudent } from '@/hooks/useStudent';
+import { supabase } from '@/integrations/supabase/client';
 import { Users, GamepadIcon, Trophy } from 'lucide-react';
 
 const StudentJoin = () => {
@@ -23,21 +24,49 @@ const StudentJoin = () => {
     if (!nickname.trim() || !currentClassCode.trim()) return;
 
     setLoading(true);
-    const result = await joinClass(currentClassCode.toUpperCase(), nickname.trim());
+    
+    // First validate that the class exists
+    try {
+      const { data: classData, error: classError } = await supabase
+        .from('classes')
+        .select('id, name, teacher_id')
+        .eq('class_code', currentClassCode.toUpperCase())
+        .single();
 
-    if (result.error) {
+      if (classError || !classData) {
+        toast({
+          title: "Invalid Class Code",
+          description: "The class code you entered doesn't exist. Please check and try again.",
+          variant: "destructive",
+        });
+        setLoading(false);
+        return;
+      }
+
+      // Then join the class
+      const result = await joinClass(currentClassCode.toUpperCase(), nickname.trim());
+
+      if (result.error) {
+        toast({
+          title: "Error",
+          description: result.error,
+          variant: "destructive",
+        });
+      } else {
+        toast({
+          title: "Welcome to the class!",
+          description: `You've successfully joined ${result.class?.name}`,
+        });
+        navigate('/student/dashboard');
+      }
+    } catch (error) {
       toast({
         title: "Error",
-        description: result.error,
+        description: "Failed to validate class code. Please try again.",
         variant: "destructive",
       });
-    } else {
-      toast({
-        title: "Welcome to the class!",
-        description: `You've successfully joined ${result.class?.name}`,
-      });
-      navigate('/student/dashboard');
     }
+    
     setLoading(false);
   };
 

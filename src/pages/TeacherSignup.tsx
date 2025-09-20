@@ -123,6 +123,16 @@ const TeacherSignup = () => {
     e.preventDefault();
     if (!fullName.trim() || !user) return;
 
+    // Teachers should only register with invitation tokens
+    if (!pendingInvitation) {
+      toast({
+        title: "Invitation Required",
+        description: "Teachers can only register with a valid invitation from a school administrator.",
+        variant: "destructive",
+      });
+      return;
+    }
+
     setLoading(true);
     try {
       const { error } = await createUserProfile(

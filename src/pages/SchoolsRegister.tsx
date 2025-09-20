@@ -66,7 +66,7 @@ const SchoolsRegister = () => {
         description: `Welcome to ${schoolData.name} as the school administrator` 
       });
       
-      navigate('/schools/admin-dashboard');
+      navigate('/school/admin-dashboard');
     } catch (err: any) {
       toast({ 
         title: 'Error', 
