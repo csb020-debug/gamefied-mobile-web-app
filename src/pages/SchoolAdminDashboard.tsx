@@ -24,7 +24,8 @@ import {
   UserPlus,
   Shield,
   BookOpen,
-  GraduationCap
+  GraduationCap,
+  Home
 } from 'lucide-react';
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
@@ -152,17 +153,8 @@ const SchoolAdminDashboard = () => {
 
       setSchoolInfo(school);
 
-      // Load invitations for this school
-      const { data: invitationsData, error: invitationsError } = await supabase
-        .from('teacher_invitations')
-        .select('*')
-        .eq('school_id', school.id)
-        .order('created_at', { ascending: false });
-
-      if (invitationsError && invitationsError.code !== 'PGRST116') {
-        console.error('Error fetching invitations:', invitationsError);
-      }
-      setInvitations((invitationsData || []) as TeacherInvitation[]);
+      // Teacher invitations feature disabled until database table is available
+      setInvitations([]);
 
       // Load teachers for this school from user_profiles
       const { data: teachersData, error: teachersError } = await supabase
@@ -264,58 +256,12 @@ const SchoolAdminDashboard = () => {
     e.preventDefault();
     if (!newTeacherEmail.trim() || !schoolInfo) return;
 
-    setInviteLoading(true);
-    try {
-      const { data, error } = await (supabase as any).rpc('send_teacher_invitation', {
-        school_id_param: schoolInfo.id,
-        teacher_email_param: newTeacherEmail.trim(),
-        invited_by_param: user?.id
-      });
-
-      if (error) throw error;
-
-      if ((data as any)?.success) {
-        // Send email notification
-        const invitationLink = `${window.location.origin}/teachers/invite/${(data as any).invitation_token}`;
-        const emailResult = await sendTeacherInvitationEmail({
-          teacherEmail: newTeacherEmail.trim(),
-          schoolName: schoolInfo.name,
-          invitationLink,
-          expiresAt: (data as any).expires_at,
-          invitedBy: user?.email || 'School Administrator'
-        });
-
-        if (emailResult.success) {
-          toast({
-            title: "Invitation sent!",
-            description: `Invitation sent to ${newTeacherEmail}`,
-          });
-        } else {
-          toast({
-            title: "Invitation created but email failed",
-            description: `Invitation created but email sending failed: ${emailResult.error}`,
-            variant: "destructive",
-          });
-        }
-        
-        setNewTeacherEmail('');
-        loadSchoolData(); // Reload invitations
-      } else {
-        toast({
-          title: "Error",
-          description: (data as any)?.error || 'Failed to send invitation',
-          variant: "destructive",
-        });
-      }
-    } catch (error: any) {
-      toast({
-        title: "Error",
-        description: error.message,
-        variant: "destructive",
-      });
-    } finally {
-      setInviteLoading(false);
-    }
+    // Teacher invitation feature disabled until database table is available
+    toast({
+      title: "Feature Unavailable",
+      description: "Teacher invitation feature is not yet available",
+      variant: "destructive",
+    });
   };
 
   const addAdmin = async (e: React.FormEvent) => {
@@ -390,26 +336,12 @@ const SchoolAdminDashboard = () => {
   };
 
   const cancelInvitation = async (invitationId: string) => {
-    try {
-      const { error } = await supabase
-        .from('teacher_invitations')
-        .update({ status: 'cancelled' })
-        .eq('id', invitationId);
-
-      if (error) throw error;
-
-      toast({
-        title: "Invitation cancelled",
-        description: "The invitation has been cancelled",
-      });
-      loadSchoolData();
-    } catch (error: any) {
-      toast({
-        title: "Error",
-        description: error.message,
-        variant: "destructive",
-      });
-    }
+    // Teacher invitations feature disabled until database table is available
+    toast({
+      title: "Feature Unavailable",
+      description: "Teacher invitations feature is not yet available",
+      variant: "destructive",
+    });
   };
 
   const getStatusBadge = (status: string) => {
@@ -474,6 +406,10 @@ const SchoolAdminDashboard = () => {
             </p>
           </div>
           <div className="flex gap-2">
+            <Button onClick={() => navigate('/')} variant="outline">
+              <Home className="h-4 w-4 mr-2" />
+              Home
+            </Button>
             <Button onClick={() => navigate('/teacher/dashboard')} variant="outline">
               <BookOpen className="h-4 w-4 mr-2" />
               Teacher View

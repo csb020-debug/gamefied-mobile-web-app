@@ -10,7 +10,7 @@ const RoleSelection = () => {
   const handleRoleSelection = (role: string) => {
     switch (role) {
       case 'school_admin':
-        navigate('/schools/register');
+        navigate('/school-admin/signup');
         break;
       case 'teacher':
         navigate('/teachers/signup');

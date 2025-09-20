@@ -222,7 +222,7 @@ const SchoolDashboard = () => {
             </CardDescription>
           </CardHeader>
           <CardContent>
-            <Button onClick={() => navigate('/schools/register')} className="w-full">
+            <Button onClick={() => navigate('/school-admin/signup')} className="w-full">
               Register School
             </Button>
           </CardContent>

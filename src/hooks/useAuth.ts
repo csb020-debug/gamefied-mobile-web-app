@@ -3,6 +3,7 @@ import { User, Session } from '@supabase/supabase-js';
 import { supabase } from '@/integrations/supabase/client';
 import DataService from '@/lib/dataService';
 import config from '@/lib/config';
+import { useAuthCache } from './useAuthCache';
 
 interface UserProfile {
   id: string;
@@ -40,73 +41,124 @@ export const useAuthState = () => {
   const [session, setSession] = useState<Session | null>(null);
   const [userProfile, setUserProfile] = useState<UserProfile | null>(null);
   const [loading, setLoading] = useState(true);
+  const [initialized, setInitialized] = useState(false);
+  const { loadFromCache, saveToCache, clearCache, isValidCache } = useAuthCache();
 
   useEffect(() => {
-    console.log('useAuth: Setting up auth state listener');
+    let isMounted = true;
     
-    let isInitialized = false;
-    
-    // Set up auth state listener FIRST
-    const { data: { subscription } } = supabase.auth.onAuthStateChange(
-      async (event, session) => {
-        console.log('useAuth: Auth state changed', { event, hasUser: !!session?.user });
+    const initializeAuth = async () => {
+      try {
+        // Try to load from cache first
+        const cached = loadFromCache();
+        if (cached && isValidCache(cached)) {
+          setUser(cached.user);
+          setUserProfile(cached.userProfile);
+          if (cached.user) {
+            // Verify session is still valid in background
+            supabase.auth.getSession().then(({ data: { session } }) => {
+              if (!session?.user) {
+                // Session expired, clear cache and state
+                clearCache();
+                setUser(null);
+                setUserProfile(null);
+                setSession(null);
+              } else {
+                setSession(session);
+              }
+            });
+          }
+          setLoading(false);
+          setInitialized(true);
+          return;
+        }
+        
+        // Get initial session
+        const { data: { session }, error } = await supabase.auth.getSession();
+        
+        if (!isMounted) return;
+        
+        if (error) {
+          console.error('useAuth: Error getting session:', error);
+          setLoading(false);
+          return;
+        }
+
         setSession(session);
         setUser(session?.user ?? null);
         
-        // Load user profile when user changes
-        if (session?.user) {
-          console.log('useAuth: Loading user profile for user:', session.user.id);
+        // Load profile only if user exists and we don't have it cached
+        if (session?.user && !userProfile) {
           await loadUserProfile(session.user.id);
-        } else {
-          setUserProfile(null);
         }
         
-        // Only set loading to false after we've processed the auth state
-        if (!isInitialized) {
+        setInitialized(true);
+        setLoading(false);
+      } catch (error) {
+        console.error('useAuth: Error initializing auth:', error);
+        if (isMounted) {
           setLoading(false);
-          isInitialized = true;
+        }
+      }
+    };
+
+    // Set up auth state listener for future changes
+    const { data: { subscription } } = supabase.auth.onAuthStateChange(
+      async (event, session) => {
+        if (!isMounted) return;
+        
+        console.log('useAuth: Auth state changed', { event, hasUser: !!session?.user });
+        
+        setSession(session);
+        setUser(session?.user ?? null);
+        
+        // Only reload profile if user changed or signed in
+        if (event === 'SIGNED_IN' || event === 'TOKEN_REFRESHED') {
+          if (session?.user) {
+            await loadUserProfile(session.user.id);
+          }
+        } else if (event === 'SIGNED_OUT') {
+          setUserProfile(null);
+          clearCache();
         }
       }
     );
 
-    // THEN check for existing session
-    supabase.auth.getSession().then(async ({ data: { session } }) => {
-      setSession(session);
-      setUser(session?.user ?? null);
-      
-      if (session?.user) {
-        await loadUserProfile(session.user.id);
-      }
-      
-      if (!isInitialized) {
-        setLoading(false);
-        isInitialized = true;
-      }
-    });
+    // Initialize auth state
+    initializeAuth();
 
-    return () => subscription.unsubscribe();
+    return () => {
+      isMounted = false;
+      subscription.unsubscribe();
+    };
   }, []);
 
   const loadUserProfile = async (userId: string) => {
     try {
-      console.log('loadUserProfile: Attempting to load profile for user:', userId);
-      
       if (!config.isConfigured()) {
-        console.error('loadUserProfile: Supabase not configured - cannot load profile');
+        console.warn('loadUserProfile: Supabase not configured - skipping profile load');
+        return;
+      }
+
+      // Check if we already have a profile for this user
+      if (userProfile && userProfile.user_id === userId) {
         return;
       }
 
       const profile = await DataService.getUserProfile(userId);
       
       if (profile) {
-        console.log('loadUserProfile: Profile found and loaded:', profile);
-        setUserProfile({
+        const newProfile = {
           ...profile,
           role: profile.role as 'school_admin' | 'teacher' | 'student'
-        });
+        };
+        setUserProfile(newProfile);
+        
+        // Save to cache
+        saveToCache(user, newProfile);
       } else {
-        console.log('loadUserProfile: User profile not found - user needs to complete registration flow');
         setUserProfile(null);
+        saveToCache(user, null);
       }
     } catch (error) {
       console.error('loadUserProfile: Error loading user profile:', error);
@@ -168,18 +220,19 @@ export const useAuthState = () => {
 
   const signOut = async () => {
     try {
-      console.log('useAuth: Starting sign out process');
       await supabase.auth.signOut();
+      // Clear state immediately
       setUserProfile(null);
       setUser(null);
       setSession(null);
-      console.log('useAuth: Sign out completed successfully');
+      clearCache();
     } catch (error) {
       console.error('useAuth: Error during sign out:', error);
       // Force clear local state even if Supabase signOut fails
       setUserProfile(null);
       setUser(null);
       setSession(null);
+      clearCache();
     }
   };
 

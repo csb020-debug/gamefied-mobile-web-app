@@ -12,6 +12,9 @@ import { Users, GraduationCap, School, ArrowRight } from "lucide-react";
 import { useAuth } from "@/hooks/useAuth";
 import { useStudent } from "@/hooks/useStudent";
 import { useEffect } from "react";
+import SupabaseConnectionTest from "@/components/SupabaseConnectionTest";
+import QuickConnectionTest from "@/components/QuickConnectionTest";
+import EnvChecker from "@/components/EnvChecker";
 
 const Index: React.FC = () => {
   const { user, userProfile, loading } = useAuth();
@@ -53,6 +56,21 @@ const Index: React.FC = () => {
       <Features />
       <StudySmarter />
       <NoMoreStuck />
+      
+      {/* Temporary Debug Component - Remove after fixing */}
+      <section className="py-12 px-6">
+        <div className="max-w-4xl mx-auto space-y-6">
+          <h2 className="text-2xl font-bold mb-6 text-center">🔧 Supabase Connection Diagnostics</h2>
+          <EnvChecker />
+          <QuickConnectionTest />
+          <details className="mt-4">
+            <summary className="cursor-pointer font-medium text-gray-600">Advanced Connection Test</summary>
+            <div className="mt-4">
+              <SupabaseConnectionTest />
+            </div>
+          </details>
+        </div>
+      </section>
       
       {/* School Admin Only Section */}
       {!user && (
