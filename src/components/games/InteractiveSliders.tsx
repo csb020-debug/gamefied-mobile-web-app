@@ -94,7 +94,7 @@ const InteractiveSliders: React.FC<InteractiveSlidersProps> = ({ onComplete, onB
 
   const calculateTotal = () => {
     let total = 0;
-    let breakdown: any = {};
+    const breakdown: any = {};
 
     sliderConfigs.forEach(config => {
       const value = sliderData[config.key as keyof typeof sliderData];

@@ -59,7 +59,7 @@ export const useChallenges = () => {
     }
 
     try {
-      let filters: any = {};
+      const filters: any = {};
 
       // For students, fetch challenges from their class
       if (currentProfile.role === 'student' && currentClass) {

@@ -70,7 +70,7 @@ export const useLeaderboard = () => {
     if (!user || !currentProfile) return;
 
     try {
-      let filters: any = {};
+      const filters: any = {};
       
       // For students, only show their class
       if (currentProfile.role === 'student' && currentClass) {

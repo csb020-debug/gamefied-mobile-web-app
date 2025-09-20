@@ -13,8 +13,8 @@ export const Features: React.FC = () => {
           const items = element.querySelectorAll('.js-stack-cards__item');
           let scrollingFn: any = false;
           let scrolling = false;
-          let marginY = 16; // 1rem
-          let cardTop = 32; // 2rem  
+          const marginY = 16; // 1rem
+          const cardTop = 32; // 2rem  
           let cardHeight = 0;
           let windowHeight = window.innerHeight;
           let elementHeight = (element as HTMLElement).offsetHeight;

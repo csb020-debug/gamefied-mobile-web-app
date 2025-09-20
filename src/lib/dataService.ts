@@ -421,6 +421,90 @@ export class DataService {
     }
   }
 
+  // Achievement Operations
+  static async unlockAchievement(studentId: string, achievementId: string): Promise<void> {
+    try {
+      const { error } = await supabase
+        .from('achievement_unlocks')
+        .upsert({
+          student_id: studentId,
+          achievement_id: achievementId,
+          unlocked_at: new Date().toISOString()
+        });
+
+      if (error) throw error;
+    } catch (error) {
+      console.error('Error unlocking achievement:', error);
+      throw error;
+    }
+  }
+
+  static async getStudentAchievements(studentId: string): Promise<string[]> {
+    try {
+      const { data, error } = await supabase
+        .from('achievement_unlocks')
+        .select('achievement_id')
+        .eq('student_id', studentId);
+
+      if (error) throw error;
+      return data?.map(a => a.achievement_id) || [];
+    } catch (error) {
+      console.error('Error fetching student achievements:', error);
+      throw error;
+    }
+  }
+
+  // Game/Assignment Integration
+  static async getGameAssignments(filters: {
+    classId?: string;
+    teacherId?: string;
+    schoolId?: string;
+  } = {}): Promise<Assignment[]> {
+    try {
+      const assignments = await this.getAssignments(filters);
+      // Filter for game-type assignments
+      return assignments.filter(assignment => 
+        assignment.type === 'game' || 
+        (assignment.config as any)?.type === 'game'
+      );
+    } catch (error) {
+      console.error('Error fetching game assignments:', error);
+      throw error;
+    }
+  }
+
+  static async createGameAssignment(assignmentData: {
+    class_id: string;
+    title: string;
+    description?: string;
+    config: {
+      type: 'game';
+      gameType: string;
+      points: number;
+      difficulty: string;
+      duration: string;
+      icon?: string;
+      image?: string;
+    };
+  }): Promise<Assignment> {
+    try {
+      const { data, error } = await supabase
+        .from('assignments')
+        .insert({
+          ...assignmentData,
+          type: 'game'
+        })
+        .select()
+        .single();
+
+      if (error) throw error;
+      return data;
+    } catch (error) {
+      console.error('Error creating game assignment:', error);
+      throw error;
+    }
+  }
+
   // Test connection
   static async testConnection(): Promise<boolean> {
     try {
