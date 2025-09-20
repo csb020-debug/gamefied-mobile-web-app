@@ -450,7 +450,6 @@ export const StaggeredMenu: React.FC<StaggeredMenuProps> = ({
         ref={panelRef} 
         className="staggered-menu-panel" 
         aria-hidden={!open} 
-        inert={!open ? '' : undefined}
         style={{ pointerEvents: open ? 'auto' : 'none' }}
       >
         <div className="sm-panel-inner">

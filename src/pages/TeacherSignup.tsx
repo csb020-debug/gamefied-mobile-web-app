@@ -68,10 +68,11 @@ const TeacherSignup = () => {
 
       if (error) throw error;
 
-      if (data.success) {
+      const result = data as any;
+      if (result?.success) {
         toast({
           title: "Invitation accepted!",
-          description: `You've successfully joined ${data.school_name}`,
+          description: `You've successfully joined ${result?.school_name}`,
         });
         localStorage.removeItem('pending_invitation');
         setPendingInvitation(null);
@@ -79,7 +80,7 @@ const TeacherSignup = () => {
       } else {
         toast({
           title: "Error",
-          description: data.error || 'Failed to accept invitation',
+          description: result?.error || 'Failed to accept invitation',
           variant: "destructive",
         });
         localStorage.removeItem('pending_invitation');

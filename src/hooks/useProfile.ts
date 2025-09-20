@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import { supabase } from '@/integrations/supabase/client';
 import DataService from '@/lib/dataService';
 import config from '@/lib/config';
 import { useStudent } from './useStudent';

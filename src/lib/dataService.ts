@@ -67,11 +67,12 @@ export class DataService {
         return data;
       }
 
-      if (rpcData?.success) {
+      const result = rpcData as any;
+      if (result?.success) {
         // Reload the profile
         return await this.getUserProfile(profile.user_id!) as UserProfile;
       } else {
-        throw new Error(rpcData?.error || 'Failed to create profile');
+        throw new Error(result?.error || 'Failed to create profile');
       }
     } catch (error) {
       console.error('Error creating user profile:', error);

@@ -244,7 +244,7 @@ const AchievementSystem: React.FC<AchievementSystemProps> = ({ studentId, classI
               const maxDaily = Math.max(...dailyCompletions, 0);
               progress = Math.min(maxDaily, requirement);
             } else if (achievement.id === 'eco_expert') {
-              const ecoChallenges = challenges.filter(c => c.config?.category === 'action').length;
+              const ecoChallenges = challenges.filter(c => (c.config as any)?.category === 'action').length;
               progress = ecoChallenges > 0 ? 1 : 0;
               requirement = 1;
             }
