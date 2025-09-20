@@ -61,6 +61,7 @@ export const useAuthState = () => {
           setUserProfile(null);
         }
         
+        // Only set loading to false after we've processed the auth state
         if (!isInitialized) {
           setLoading(false);
           isInitialized = true;
@@ -91,24 +92,24 @@ export const useAuthState = () => {
       console.log('loadUserProfile: Attempting to load profile for user:', userId);
       
       if (!config.isConfigured()) {
-        console.error('Supabase not configured - cannot load profile');
+        console.error('loadUserProfile: Supabase not configured - cannot load profile');
         return;
       }
 
       const profile = await DataService.getUserProfile(userId);
       
       if (profile) {
-        console.log('Loaded user profile:', profile);
+        console.log('loadUserProfile: Profile found and loaded:', profile);
         setUserProfile({
           ...profile,
           role: profile.role as 'school_admin' | 'teacher' | 'student'
         });
       } else {
-        console.log('User profile not found - user needs to complete registration flow');
+        console.log('loadUserProfile: User profile not found - user needs to complete registration flow');
         setUserProfile(null);
       }
     } catch (error) {
-      console.error('Error loading user profile:', error);
+      console.error('loadUserProfile: Error loading user profile:', error);
       setUserProfile(null);
     }
   };
@@ -153,7 +154,8 @@ export const useAuthState = () => {
   };
 
   const signInWithGoogle = async () => {
-    const redirectUrl = `${window.location.origin}/`;
+    // Redirect to school admin signup page after successful OAuth
+    const redirectUrl = `${window.location.origin}/school-admin/signup`;
     
     const { error } = await supabase.auth.signInWithOAuth({
       provider: 'google',
@@ -189,6 +191,42 @@ export const useAuthState = () => {
     try {
       console.log('createUserProfile: Creating profile for user:', user.id, 'with role:', role);
       
+      // Check if profile already exists
+      const { data: existingProfile, error: checkError } = await supabase
+        .from('user_profiles')
+        .select('*')
+        .eq('user_id', user.id)
+        .single();
+      
+      if (existingProfile && !checkError) {
+        console.log('createUserProfile: Profile already exists, updating instead');
+        const { data: updatedProfile, error: updateError } = await supabase
+          .from('user_profiles')
+          .update({
+            email: email,
+            full_name: fullName,
+            role: role as 'school_admin' | 'teacher' | 'student',
+            school_id: schoolId,
+            is_active: true
+          })
+          .eq('user_id', user.id)
+          .select()
+          .single();
+          
+        if (updateError) {
+          console.error('createUserProfile: Update error:', updateError);
+          return { error: updateError };
+        }
+        
+        console.log('createUserProfile: Profile updated successfully:', updatedProfile);
+        setUserProfile({
+          ...updatedProfile,
+          role: updatedProfile.role as 'school_admin' | 'teacher' | 'student'
+        });
+        return { error: null };
+      }
+      
+      // Create new profile
       const profileData = {
         user_id: user.id,
         email: email,
@@ -198,7 +236,10 @@ export const useAuthState = () => {
         is_active: true
       };
 
+      console.log('createUserProfile: Creating new profile with data:', profileData);
       const newProfile = await DataService.createUserProfile(profileData);
+      console.log('createUserProfile: New profile created successfully:', newProfile);
+      
       setUserProfile({
         ...newProfile,
         role: newProfile.role as 'school_admin' | 'teacher' | 'student'

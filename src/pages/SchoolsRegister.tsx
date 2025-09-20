@@ -60,6 +60,22 @@ const SchoolsRegister = () => {
       );
 
       if (profileError) throw profileError;
+      
+      // Create school admin entry
+      const { error: adminError } = await supabase
+        .from('school_admins')
+        .upsert({
+          user_id: user.id,
+          school_id: schoolData.id,
+          permissions: {}
+        }, {
+          onConflict: 'user_id,school_id'
+        });
+        
+      if (adminError) {
+        console.warn('Failed to create school admin entry:', adminError);
+        // Don't throw error here, just log it as it's not critical
+      }
 
       toast({ 
         title: 'School registered successfully!', 

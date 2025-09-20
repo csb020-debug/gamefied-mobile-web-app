@@ -1,6 +1,6 @@
 
 import { Button } from "@/components/ui/button";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import Hero from "@/components/learning-companion/Hero";
 import Features from "@/components/learning-companion/Features";
 import StudySmarter from "@/components/learning-companion/StudySmarter";
@@ -11,17 +11,44 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Users, GraduationCap, School, ArrowRight } from "lucide-react";
 import { useAuth } from "@/hooks/useAuth";
 import { useStudent } from "@/hooks/useStudent";
-import ConnectionStatus from "@/components/ConnectionStatus";
+import { useEffect } from "react";
 
 const Index: React.FC = () => {
-  const { user, userProfile } = useAuth();
+  const { user, userProfile, loading } = useAuth();
   const { currentStudent, currentClass } = useStudent();
+  const navigate = useNavigate();
+
+  // Auto-redirect authenticated users to their appropriate dashboard
+  useEffect(() => {
+    if (!loading && user) {
+      console.log('Index: User authenticated:', user.id);
+      
+      if (userProfile) {
+        console.log('Index: User has profile with role:', userProfile.role);
+        
+        if (userProfile.role === 'school_admin' && userProfile.school_id) {
+          console.log('Index: Redirecting school admin to dashboard');
+          navigate('/schools/admin-dashboard');
+        } else if (userProfile.role === 'school_admin' && !userProfile.school_id) {
+          console.log('Index: Redirecting school admin to complete school setup');
+          navigate('/school-admin/signup');
+        } else if (userProfile.role === 'teacher') {
+          console.log('Index: Redirecting teacher to dashboard');
+          navigate('/teacher/dashboard');
+        } else if (userProfile.role === 'student') {
+          console.log('Index: Redirecting student to dashboard');
+          navigate('/student/dashboard');
+        }
+      } else {
+        // User is authenticated but has no profile - likely new Google OAuth user
+        console.log('Index: Authenticated user has no profile, redirecting to school admin signup');
+        navigate('/school-admin/signup');
+      }
+    }
+  }, [user, userProfile, loading, navigate]);
 
   return (
     <div className="min-h-screen bg-background relative">
-      <div className="fixed top-4 right-4 z-50">
-        <ConnectionStatus />
-      </div>
       <Hero />
       <Features />
       <StudySmarter />
@@ -39,14 +66,13 @@ const Index: React.FC = () => {
               The gamified environmental education platform. Currently, only school administrators can create accounts.
             </p>
             <div className="bg-amber-50 border border-amber-200 rounded-lg p-6 max-w-2xl mx-auto">
-              <h3 className="text-lg font-semibold text-amber-800 mb-2">School Administrator Access Only</h3>
+              <h3 className="text-lg font-semibold text-amber-800 mb-2">School Administrator Registration</h3>
               <p className="text-amber-700 mb-4">
-                To maintain quality and proper school management, only school administrators can register accounts. 
-                Teachers and students will be invited by their school administrators.
+                To get started, you'll first provide some basic school information, then authenticate with your Google account to complete the registration process.
               </p>
               <Link to="/school-admin/signup">
                 <Button size="lg" className="bg-primary hover:bg-primary/90">
-                  Sign in as School Administrator
+                  Start School Registration
                 </Button>
               </Link>
             </div>

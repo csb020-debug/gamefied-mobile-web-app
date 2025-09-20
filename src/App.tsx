@@ -22,6 +22,7 @@ import SchoolAdminSignup from "./pages/SchoolAdminSignup";
 import TeacherInvite from "./pages/TeacherInvite";
 import RoleSelection from "./pages/RoleSelection";
 import NotFound from "./pages/NotFound";
+import ProfileDebug from "./pages/ProfileDebug";
 import StaggeredMenu from "./components/ui/StaggeredMenu";
 import { getMenuItems, socialItems } from "./components/ui/MenuData";
 import { useAuth } from "./hooks/useAuth";
@@ -65,6 +66,7 @@ const AppContent = () => {
         <Route path="/join/:class_code?" element={<StudentJoin />} />
         <Route path="/teacher/dashboard" element={<RoleProtectedRoute allowedRoles={['teacher', 'school_admin']}><TeacherDashboard /></RoleProtectedRoute>} />
         <Route path="/student/dashboard" element={<StudentDashboard />} />
+        <Route path="/debug-profile" element={<ProfileDebug />} />
         {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
         <Route path="*" element={<NotFound />} />
       </Routes>

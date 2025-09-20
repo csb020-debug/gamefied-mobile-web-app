@@ -12,6 +12,8 @@ export class DataService {
   // User Profile Operations
   static async getUserProfile(userId: string): Promise<UserProfile | null> {
     try {
+      console.log('DataService.getUserProfile: Fetching profile for user:', userId);
+      
       const { data, error } = await supabase
         .from('user_profiles')
         .select('*')
@@ -20,19 +22,22 @@ export class DataService {
 
       if (error) {
         if (error.code === 'PGRST116') {
+          console.log('DataService.getUserProfile: Profile not found for user:', userId);
           return null; // Profile not found
         }
         // Handle RLS circular reference error
         if (error.code === '42P17' || error.message?.includes('infinite recursion')) {
-          console.warn('RLS circular reference detected, returning null for user profile');
+          console.warn('DataService.getUserProfile: RLS circular reference detected, returning null for user profile');
           return null;
         }
+        console.error('DataService.getUserProfile: Database error:', error);
         throw error;
       }
 
+      console.log('DataService.getUserProfile: Profile found:', data);
       return data;
     } catch (error) {
-      console.error('Error fetching user profile:', error);
+      console.error('DataService.getUserProfile: Exception:', error);
       throw error;
     }
   }
@@ -41,29 +46,44 @@ export class DataService {
     try {
       console.log('DataService.createUserProfile: Creating profile with data:', profile);
       
-      // Use direct insert (skip RPC for now)
+      // Validate required fields
+      if (!profile.user_id || !profile.email) {
+        throw new Error('Missing required fields: user_id and email are required');
+      }
+      
+      // Use direct insert with better error handling
+      const profileData = {
+        user_id: profile.user_id,
+        email: profile.email,
+        full_name: profile.full_name || 'User',
+        role: profile.role || 'school_admin',
+        school_id: profile.school_id,
+        is_active: profile.is_active !== undefined ? profile.is_active : true
+      };
+      
+      console.log('DataService.createUserProfile: Inserting profile data:', profileData);
+      
       const { data, error } = await supabase
         .from('user_profiles')
-        .insert({
-          user_id: profile.user_id!,
-          email: profile.email!,
-          full_name: profile.full_name,
-          role: profile.role || 'school_admin',
-          school_id: profile.school_id,
-          is_active: true
-        })
+        .insert(profileData)
         .select()
         .single();
 
       if (error) {
-        console.error('DataService.createUserProfile: Direct insert error:', error);
+        console.error('DataService.createUserProfile: Database error:', error);
+        console.error('DataService.createUserProfile: Error details:', {
+          code: error.code,
+          message: error.message,
+          details: error.details,
+          hint: error.hint
+        });
         throw error;
       }
       
       console.log('DataService.createUserProfile: Profile created successfully:', data);
       return data;
     } catch (error) {
-      console.error('Error creating user profile:', error);
+      console.error('DataService.createUserProfile: Exception occurred:', error);
       throw error;
     }
   }

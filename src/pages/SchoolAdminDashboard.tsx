@@ -121,85 +121,138 @@ const SchoolAdminDashboard = () => {
     
     setLoading(true);
     try {
-      // Get user's school admin information
-      const { data: adminData, error: adminError } = await (supabase as any)
-        .from('school_admins')
-        .select('school_id, schools(*)')
+      // First get user's profile to check their role and school
+      const { data: userProfile, error: profileError } = await supabase
+        .from('user_profiles')
+        .select('*')
         .eq('user_id', user.id)
         .single();
 
-      if (adminError) throw adminError;
-
-      if (adminData) {
-        const school = (adminData as any).schools;
-        setSchoolInfo(school);
-
-        // Load invitations for this school
-        const { data: invitationsData, error: invitationsError } = await supabase
-          .from('teacher_invitations')
-          .select('*')
-          .eq('school_id', school.id)
-          .order('created_at', { ascending: false });
-
-        if (invitationsError) throw invitationsError;
-        setInvitations((invitationsData || []) as TeacherInvitation[]);
-
-        // Load teachers for this school
-        const { data: teachersData, error: teachersError } = await (supabase as any)
-          .rpc('get_school_teachers', { school_id_param: school.id });
-
-        if (teachersError) throw teachersError;
-        setTeachers(teachersData || []);
-
-        // Load admins for this school
-        const { data: adminsData, error: adminsError } = await (supabase as any)
-          .rpc('get_school_admins', { school_id_param: school.id });
-
-        if (adminsError) throw adminsError;
-        setAdmins(adminsData || []);
-
-        // Load classes for this school
-        const { data: classesData, error: classesError } = await supabase
-          .from('classes')
-          .select(`
-            id,
-            name,
-            grade,
-            teacher_id,
-            created_at,
-            students (
-              id,
-              nickname,
-              created_at,
-              submissions (score, completed)
-            ),
-            teachers:user_profiles!classes_teacher_id_fkey (
-              full_name,
-              email
-            )
-          `)
-          .eq('school_id', school.id);
-
-        if (classesError) throw classesError;
-        setClasses((classesData || []) as any[]);
-
-        // Flatten students from all classes
-        const allStudents = classesData?.flatMap(cls => 
-          cls.students?.map((student: any) => ({
-            ...student,
-            classes: {
-              name: cls.name,
-              grade: cls.grade,
-              teacher_id: cls.teacher_id
-            }
-          })) || []
-        ) || [];
-        setStudents(allStudents);
+      if (profileError) {
+        console.error('Error fetching user profile:', profileError);
+        throw new Error('Unable to load user profile. Please try again.');
       }
+
+      if (!userProfile || userProfile.role !== 'school_admin' || !userProfile.school_id) {
+        console.error('User is not a school admin or has no school assigned');
+        throw new Error('You do not have school admin access.');
+      }
+
+      // Get school information
+      const { data: school, error: schoolError } = await supabase
+        .from('schools')
+        .select('*')
+        .eq('id', userProfile.school_id)
+        .single();
+
+      if (schoolError) {
+        console.error('Error fetching school:', schoolError);
+        throw new Error('Unable to load school information.');
+      }
+
+      setSchoolInfo(school);
+
+      // Load invitations for this school
+      const { data: invitationsData, error: invitationsError } = await supabase
+        .from('teacher_invitations')
+        .select('*')
+        .eq('school_id', school.id)
+        .order('created_at', { ascending: false });
+
+      if (invitationsError && invitationsError.code !== 'PGRST116') {
+        console.error('Error fetching invitations:', invitationsError);
+      }
+      setInvitations((invitationsData || []) as TeacherInvitation[]);
+
+      // Load teachers for this school from user_profiles
+      const { data: teachersData, error: teachersError } = await supabase
+        .from('user_profiles')
+        .select('*')
+        .eq('school_id', school.id)
+        .eq('role', 'teacher')
+        .order('created_at', { ascending: false });
+
+      if (teachersError && teachersError.code !== 'PGRST116') {
+        console.error('Error fetching teachers:', teachersError);
+      }
+      
+      // Map user_profiles to teacher format
+      const mappedTeachers = (teachersData || []).map(profile => ({
+        id: profile.id,
+        user_id: profile.user_id,
+        email: profile.email,
+        full_name: profile.full_name,
+        is_active: profile.is_active,
+        created_at: profile.created_at
+      }));
+      setTeachers(mappedTeachers);
+
+      // Load admins for this school from user_profiles
+      const { data: adminsData, error: adminsError } = await supabase
+        .from('user_profiles')
+        .select('*')
+        .eq('school_id', school.id)
+        .eq('role', 'school_admin')
+        .order('created_at', { ascending: false });
+
+      if (adminsError && adminsError.code !== 'PGRST116') {
+        console.error('Error fetching admins:', adminsError);
+      }
+      
+      // Map user_profiles to admin format
+      const mappedAdmins = (adminsData || []).map(profile => ({
+        id: profile.id,
+        user_id: profile.user_id,
+        email: profile.email,
+        full_name: profile.full_name,
+        created_at: profile.created_at
+      }));
+      setAdmins(mappedAdmins);
+
+      // Load classes for this school
+      const { data: classesData, error: classesError } = await supabase
+        .from('classes')
+        .select(`
+          id,
+          name,
+          grade,
+          teacher_id,
+          created_at,
+          students (
+            id,
+            nickname,
+            created_at,
+            submissions (score, completed)
+          ),
+          teachers:user_profiles!classes_teacher_id_fkey (
+            full_name,
+            email
+          )
+        `)
+        .eq('school_id', school.id);
+
+      if (classesError && classesError.code !== 'PGRST116') {
+        console.error('Error fetching classes:', classesError);
+      }
+      setClasses((classesData || []) as any[]);
+
+      // Flatten students from all classes
+      const allStudents = classesData?.flatMap(cls => 
+        cls.students?.map((student: any) => ({
+          ...student,
+          classes: {
+            name: cls.name,
+            grade: cls.grade,
+            teacher_id: cls.teacher_id
+          }
+        })) || []
+      ) || [];
+      setStudents(allStudents);
     } catch (error: any) {
+      console.error('Error in loadSchoolData:', error);
       toast({
         title: "Error",
-        description: error.message,
+        description: error.message || "Failed to load school data",
         variant: "destructive",
       });
     } finally {
