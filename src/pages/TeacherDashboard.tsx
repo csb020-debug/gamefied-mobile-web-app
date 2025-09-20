@@ -164,7 +164,7 @@ const TeacherDashboard = () => {
         .order('created_at', { ascending: false });
 
       if (error) throw error;
-      setAssignments((data || []) as any[]);
+      setAssignments(data || []);
     } catch (error: any) {
       console.error('Error fetching assignments:', error);
     }

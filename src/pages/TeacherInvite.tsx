@@ -85,8 +85,7 @@ const TeacherInvite = () => {
 
       if (error) throw error;
 
-      const result = data as any;
-      if (result?.success) {
+      if (data.success) {
         // Create teacher profile with school association
         const { error: profileError } = await supabase.rpc('create_user_profile', {
           user_id_param: user.id,
@@ -102,13 +101,13 @@ const TeacherInvite = () => {
 
         toast({
           title: "Invitation accepted!",
-          description: `You've successfully joined ${result?.school_name}`,
+          description: `You've successfully joined ${data.school_name}`,
         });
         navigate('/teacher/dashboard');
       } else {
         toast({
           title: "Error",
-          description: result?.error || 'Failed to accept invitation',
+          description: data.error || 'Failed to accept invitation',
           variant: "destructive",
         });
       }

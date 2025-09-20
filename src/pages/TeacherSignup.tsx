@@ -39,11 +39,6 @@ const TeacherSignup = () => {
     }
   }, [user, pendingInvitation]);
 
-  // If user is already authenticated but doesn't have a profile, show profile form
-  if (user && !showProfileForm) {
-    checkUserProfile();
-  }
-
   const checkUserProfile = async () => {
     if (!user) return;
     
@@ -73,11 +68,10 @@ const TeacherSignup = () => {
 
       if (error) throw error;
 
-      const result = data as any;
-      if (result?.success) {
+      if (data.success) {
         toast({
           title: "Invitation accepted!",
-          description: `You've successfully joined ${result?.school_name}`,
+          description: `You've successfully joined ${data.school_name}`,
         });
         localStorage.removeItem('pending_invitation');
         setPendingInvitation(null);
@@ -85,7 +79,7 @@ const TeacherSignup = () => {
       } else {
         toast({
           title: "Error",
-          description: result?.error || 'Failed to accept invitation',
+          description: data.error || 'Failed to accept invitation',
           variant: "destructive",
         });
         localStorage.removeItem('pending_invitation');
@@ -128,16 +122,6 @@ const TeacherSignup = () => {
   const handleProfileSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!fullName.trim() || !user) return;
-
-    // Teachers should only register with invitation tokens
-    if (!pendingInvitation) {
-      toast({
-        title: "Invitation Required",
-        description: "Teachers can only register with a valid invitation from a school administrator.",
-        variant: "destructive",
-      });
-      return;
-    }
 
     setLoading(true);
     try {

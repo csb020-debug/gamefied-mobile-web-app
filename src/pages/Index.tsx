@@ -1,6 +1,6 @@
 
 import { Button } from "@/components/ui/button";
-import { Link, useNavigate } from "react-router-dom";
+import { Link } from "react-router-dom";
 import Hero from "@/components/learning-companion/Hero";
 import Features from "@/components/learning-companion/Features";
 import StudySmarter from "@/components/learning-companion/StudySmarter";
@@ -9,47 +9,8 @@ import Footer from "@/components/learning-companion/Footer";
 import Navbar from "@/components/learning-companion/Navbar";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Users, GraduationCap, School, ArrowRight } from "lucide-react";
-import { useAuth } from "@/hooks/useAuth";
-import { useStudent } from "@/hooks/useStudent";
-import { useEffect } from "react";
-import SupabaseConnectionTest from "@/components/SupabaseConnectionTest";
-import QuickConnectionTest from "@/components/QuickConnectionTest";
-import EnvChecker from "@/components/EnvChecker";
 
 const Index: React.FC = () => {
-  const { user, userProfile, loading } = useAuth();
-  const { currentStudent, currentClass } = useStudent();
-  const navigate = useNavigate();
-
-  // Auto-redirect authenticated users to their appropriate dashboard
-  useEffect(() => {
-    if (!loading && user) {
-      console.log('Index: User authenticated:', user.id);
-      
-      if (userProfile) {
-        console.log('Index: User has profile with role:', userProfile.role);
-        
-        if (userProfile.role === 'school_admin' && userProfile.school_id) {
-          console.log('Index: Redirecting school admin to dashboard');
-          navigate('/schools/admin-dashboard');
-        } else if (userProfile.role === 'school_admin' && !userProfile.school_id) {
-          console.log('Index: Redirecting school admin to complete school setup');
-          navigate('/school-admin/signup');
-        } else if (userProfile.role === 'teacher') {
-          console.log('Index: Redirecting teacher to dashboard');
-          navigate('/teacher/dashboard');
-        } else if (userProfile.role === 'student') {
-          console.log('Index: Redirecting student to dashboard');
-          navigate('/student/dashboard');
-        }
-      } else {
-        // User is authenticated but has no profile - likely new Google OAuth user
-        console.log('Index: Authenticated user has no profile, redirecting to school admin signup');
-        navigate('/school-admin/signup');
-      }
-    }
-  }, [user, userProfile, loading, navigate]);
-
   return (
     <div className="min-h-screen bg-background relative">
       <Hero />
@@ -57,130 +18,124 @@ const Index: React.FC = () => {
       <StudySmarter />
       <NoMoreStuck />
       
-      {/* Temporary Debug Component - Remove after fixing */}
-      <section className="py-12 px-6">
-        <div className="max-w-4xl mx-auto space-y-6">
-          <h2 className="text-2xl font-bold mb-6 text-center">🔧 Supabase Connection Diagnostics</h2>
-          <EnvChecker />
-          <QuickConnectionTest />
-          <details className="mt-4">
-            <summary className="cursor-pointer font-medium text-gray-600">Advanced Connection Test</summary>
-            <div className="mt-4">
-              <SupabaseConnectionTest />
-            </div>
-          </details>
-        </div>
-      </section>
-      
-      {/* School Admin Only Section */}
-      {!user && (
-        <section className="py-24 px-6 lg:px-8 bg-gradient-to-br from-primary/5 to-secondary/5">
-        <div className="max-w-4xl mx-auto">
+      {/* Entry Points Section */}
+      <section className="py-24 px-6 lg:px-8 bg-gradient-to-br from-primary/5 to-secondary/5">
+        <div className="max-w-6xl mx-auto">
           <div className="text-center mb-16">
             <h2 className="text-4xl lg:text-5xl font-bold mb-6">
-              Welcome to <span className="text-primary">EcoQuest</span>
+              Get Started with <span className="text-primary">EcoQuest</span>
             </h2>
-            <p className="text-xl text-muted-foreground max-w-3xl mx-auto mb-8">
-              The gamified environmental education platform. Currently, only school administrators can create accounts.
+            <p className="text-xl text-muted-foreground max-w-3xl mx-auto">
+              Join the environmental education revolution. Choose your path to start learning and playing together.
             </p>
-            <div className="bg-amber-50 border border-amber-200 rounded-lg p-6 max-w-2xl mx-auto">
-              <h3 className="text-lg font-semibold text-amber-800 mb-2">School Administrator Registration</h3>
-              <p className="text-amber-700 mb-4">
-                To get started, you'll first provide some basic school information, then authenticate with your Google account to complete the registration process.
-              </p>
-              <Link to="/school-admin/signup">
-                <Button size="lg" className="bg-primary hover:bg-primary/90">
-                  Start School Registration
-                </Button>
-              </Link>
-            </div>
           </div>
 
-          <div className="grid md:grid-cols-2 gap-8">
-            {/* How It Works */}
-            <Card className="bg-card/80 backdrop-blur-sm border-border/50">
-              <CardHeader>
-                <CardTitle className="text-xl">How It Works</CardTitle>
+          <div className="grid md:grid-cols-3 gap-8">
+            {/* Students */}
+            <Card className="bg-card/80 backdrop-blur-sm border-border/50 hover:border-primary/50 transition-all duration-300 group">
+              <CardHeader className="text-center">
+                <div className="mx-auto mb-4 w-16 h-16 bg-primary/10 rounded-full flex items-center justify-center group-hover:bg-primary/20 transition-colors">
+                  <Users className="h-8 w-8 text-primary" />
+                </div>
+                <CardTitle className="text-2xl">Students</CardTitle>
                 <CardDescription>
-                  The EcoQuest platform follows a structured approach to ensure quality education
+                  Join your class with a simple code and start your eco-adventure
                 </CardDescription>
               </CardHeader>
               <CardContent>
                 <div className="space-y-4">
-                  <div className="flex items-start space-x-3">
-                    <div className="w-8 h-8 bg-primary/10 rounded-full flex items-center justify-center flex-shrink-0">
-                      <span className="text-sm font-semibold text-primary">1</span>
+                  <div className="text-sm text-muted-foreground space-y-2">
+                    <div className="flex items-center">
+                      <div className="w-2 h-2 bg-primary rounded-full mr-2"></div>
+                      <span>Enter class code or use teacher's link</span>
                     </div>
-                    <div>
-                      <h4 className="font-medium">School Registration</h4>
-                      <p className="text-sm text-muted-foreground">School administrators register their school using Google OAuth</p>
+                    <div className="flex items-center">
+                      <div className="w-2 h-2 bg-primary rounded-full mr-2"></div>
+                      <span>Choose your nickname</span>
                     </div>
-                  </div>
-                  <div className="flex items-start space-x-3">
-                    <div className="w-8 h-8 bg-primary/10 rounded-full flex items-center justify-center flex-shrink-0">
-                      <span className="text-sm font-semibold text-primary">2</span>
-                    </div>
-                    <div>
-                      <h4 className="font-medium">Teacher Invitations</h4>
-                      <p className="text-sm text-muted-foreground">Admins invite teachers to join their school</p>
+                    <div className="flex items-center">
+                      <div className="w-2 h-2 bg-primary rounded-full mr-2"></div>
+                      <span>Play games and earn points</span>
                     </div>
                   </div>
-                  <div className="flex items-start space-x-3">
-                    <div className="w-8 h-8 bg-primary/10 rounded-full flex items-center justify-center flex-shrink-0">
-                      <span className="text-sm font-semibold text-primary">3</span>
-                    </div>
-                    <div>
-                      <h4 className="font-medium">Class Creation</h4>
-                      <p className="text-sm text-muted-foreground">Teachers create classes and share codes with students</p>
-                    </div>
-                  </div>
-                  <div className="flex items-start space-x-3">
-                    <div className="w-8 h-8 bg-primary/10 rounded-full flex items-center justify-center flex-shrink-0">
-                      <span className="text-sm font-semibold text-primary">4</span>
-                    </div>
-                    <div>
-                      <h4 className="font-medium">Student Learning</h4>
-                      <p className="text-sm text-muted-foreground">Students join classes and start their eco-adventure</p>
-                    </div>
-                  </div>
+                  <Link to="/join" className="block">
+                    <Button className="w-full group">
+                      Join Class
+                      <ArrowRight className="ml-2 h-4 w-4 group-hover:translate-x-1 transition-transform" />
+                    </Button>
+                  </Link>
                 </div>
               </CardContent>
             </Card>
 
-            {/* Benefits */}
-            <Card className="bg-card/80 backdrop-blur-sm border-border/50">
-              <CardHeader>
-                <CardTitle className="text-xl">Platform Benefits</CardTitle>
+            {/* Teachers */}
+            <Card className="bg-card/80 backdrop-blur-sm border-border/50 hover:border-primary/50 transition-all duration-300 group">
+              <CardHeader className="text-center">
+                <div className="mx-auto mb-4 w-16 h-16 bg-secondary/10 rounded-full flex items-center justify-center group-hover:bg-secondary/20 transition-colors">
+                  <GraduationCap className="h-8 w-8 text-secondary" />
+                </div>
+                <CardTitle className="text-2xl">Teachers</CardTitle>
                 <CardDescription>
-                  Why EcoQuest is the perfect choice for environmental education
+                  Create classes, assign activities, and track student progress
                 </CardDescription>
               </CardHeader>
               <CardContent>
                 <div className="space-y-4">
-                  <div className="flex items-center space-x-3">
-                    <div className="w-2 h-2 bg-primary rounded-full"></div>
-                    <span className="text-sm">Secure Google OAuth authentication</span>
+                  <div className="text-sm text-muted-foreground space-y-2">
+                    <div className="flex items-center">
+                      <div className="w-2 h-2 bg-secondary rounded-full mr-2"></div>
+                      <span>Sign up with email (magic link)</span>
+                    </div>
+                    <div className="flex items-center">
+                      <div className="w-2 h-2 bg-secondary rounded-full mr-2"></div>
+                      <span>Create and manage classes</span>
+                    </div>
+                    <div className="flex items-center">
+                      <div className="w-2 h-2 bg-secondary rounded-full mr-2"></div>
+                      <span>Assign games and track results</span>
+                    </div>
                   </div>
-                  <div className="flex items-center space-x-3">
-                    <div className="w-2 h-2 bg-primary rounded-full"></div>
-                    <span className="text-sm">Controlled access through school administrators</span>
+                  <Link to="/teachers/signup" className="block">
+                    <Button variant="secondary" className="w-full group">
+                      Teacher Sign Up
+                      <ArrowRight className="ml-2 h-4 w-4 group-hover:translate-x-1 transition-transform" />
+                    </Button>
+                  </Link>
+                </div>
+              </CardContent>
+            </Card>
+
+            {/* Schools */}
+            <Card className="bg-card/80 backdrop-blur-sm border-border/50 hover:border-accent/50 transition-all duration-300 group">
+              <CardHeader className="text-center">
+                <div className="mx-auto mb-4 w-16 h-16 bg-accent/10 rounded-full flex items-center justify-center group-hover:bg-accent/20 transition-colors">
+                  <School className="h-8 w-8 text-accent" />
+                </div>
+                <CardTitle className="text-2xl">Schools</CardTitle>
+                <CardDescription>
+                  Enterprise solutions for educational institutions
+                </CardDescription>
+              </CardHeader>
+              <CardContent>
+                <div className="space-y-4">
+                  <div className="text-sm text-muted-foreground space-y-2">
+                    <div className="flex items-center">
+                      <div className="w-2 h-2 bg-accent rounded-full mr-2"></div>
+                      <span>Bulk teacher registration</span>
+                    </div>
+                    <div className="flex items-center">
+                      <div className="w-2 h-2 bg-accent rounded-full mr-2"></div>
+                      <span>School-wide analytics</span>
+                    </div>
+                    <div className="flex items-center">
+                      <div className="w-2 h-2 bg-accent rounded-full mr-2"></div>
+                      <span>Custom curriculum integration</span>
+                    </div>
                   </div>
-                  <div className="flex items-center space-x-3">
-                    <div className="w-2 h-2 bg-primary rounded-full"></div>
-                    <span className="text-sm">Gamified learning experience</span>
-                  </div>
-                  <div className="flex items-center space-x-3">
-                    <div className="w-2 h-2 bg-primary rounded-full"></div>
-                    <span className="text-sm">Real-time progress tracking</span>
-                  </div>
-                  <div className="flex items-center space-x-3">
-                    <div className="w-2 h-2 bg-primary rounded-full"></div>
-                    <span className="text-sm">Environmental education focus</span>
-                  </div>
-                  <div className="flex items-center space-x-3">
-                    <div className="w-2 h-2 bg-primary rounded-full"></div>
-                    <span className="text-sm">Easy class management</span>
-                  </div>
+                  <Button variant="outline" className="w-full group" disabled>
+                    Coming Soon
+                    <ArrowRight className="ml-2 h-4 w-4 group-hover:translate-x-1 transition-transform" />
+                  </Button>
                 </div>
               </CardContent>
             </Card>
@@ -193,7 +148,6 @@ const Index: React.FC = () => {
           </div>
         </div>
       </section>
-      )}
 
       <Footer />
     </div>

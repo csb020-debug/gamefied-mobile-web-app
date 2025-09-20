@@ -5,8 +5,6 @@ import { Input } from '@/components/ui/input';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { useToast } from '@/hooks/use-toast';
 import { useStudent } from '@/hooks/useStudent';
-import { useAuth } from '@/hooks/useAuth';
-import { supabase } from '@/integrations/supabase/client';
 import { Users, GamepadIcon, Trophy } from 'lucide-react';
 
 const StudentJoin = () => {
@@ -15,7 +13,6 @@ const StudentJoin = () => {
   const [loading, setLoading] = useState(false);
   const [manualClassCode, setManualClassCode] = useState('');
   const { joinClass } = useStudent();
-  const { user, createUserProfile } = useAuth();
   const { toast } = useToast();
   const navigate = useNavigate();
 
@@ -26,69 +23,21 @@ const StudentJoin = () => {
     if (!nickname.trim() || !currentClassCode.trim()) return;
 
     setLoading(true);
-    
-    try {
-      // First validate that the class exists
-      const { data: classData, error: classError } = await supabase
-        .from('classes')
-        .select('id, name, teacher_id, school_id')
-        .eq('class_code', currentClassCode.toUpperCase())
-        .single();
+    const result = await joinClass(currentClassCode.toUpperCase(), nickname.trim());
 
-      if (classError || !classData) {
-        toast({
-          title: "Invalid Class Code",
-          description: "The class code you entered doesn't exist. Please check and try again.",
-          variant: "destructive",
-        });
-        setLoading(false);
-        return;
-      }
-
-      // If user is authenticated, create a user profile first
-      if (user) {
-        const { error: profileError } = await createUserProfile(
-          user.email || '',
-          nickname.trim(),
-          'student',
-          classData.school_id
-        );
-
-        if (profileError) {
-          toast({
-            title: "Error",
-            description: "Failed to create user profile. Please try again.",
-            variant: "destructive",
-          });
-          setLoading(false);
-          return;
-        }
-      }
-
-      // Then join the class
-      const result = await joinClass(currentClassCode.toUpperCase(), nickname.trim());
-
-      if (result.error) {
-        toast({
-          title: "Error",
-          description: result.error,
-          variant: "destructive",
-        });
-      } else {
-        toast({
-          title: "Welcome to the class!",
-          description: `You've successfully joined ${result.class?.name}`,
-        });
-        navigate('/student/dashboard');
-      }
-    } catch (error) {
+    if (result.error) {
       toast({
         title: "Error",
-        description: "Failed to validate class code. Please try again.",
+        description: result.error,
         variant: "destructive",
       });
+    } else {
+      toast({
+        title: "Welcome to the class!",
+        description: `You've successfully joined ${result.class?.name}`,
+      });
+      navigate('/student/dashboard');
     }
-    
     setLoading(false);
   };
 

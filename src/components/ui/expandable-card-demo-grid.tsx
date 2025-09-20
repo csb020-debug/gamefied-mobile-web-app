@@ -123,7 +123,8 @@ export default function ExpandableCardDemo() {
                     exit={{ opacity: 0 }}
                     className="px-4 py-3 text-sm rounded-full font-bold bg-green-500 text-white hover:bg-green-600 transition-colors"
                     onClick={() => {
-                      // Handle lesson action - start, continue, or review lesson
+                      // Handle lesson action
+                      console.log(`${active.progress === 0 ? 'Starting' : active.completed ? 'Reviewing' : 'Continuing'} lesson: ${active.title}`);
                     }}
                   >
                     {active.progress === 0 ? 'Start Lesson' : active.completed ? 'Review Lesson' : 'Continue Lesson'}

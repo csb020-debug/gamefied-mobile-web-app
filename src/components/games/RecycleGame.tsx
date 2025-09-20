@@ -11,13 +11,7 @@ interface RecycleGameProps {
 }
 
 const RecycleGame: React.FC<RecycleGameProps> = ({ onComplete }) => {
-  // Find any game assignment to save scores to
-  const engine = useGameEngine({ 
-    initialLives: 3, 
-    initialScore: 0, 
-    autoStart: true,
-    gameType: 'recycle'
-  });
+  const engine = useGameEngine({ initialLives: 3, initialScore: 0, autoStart: true });
   const [currentItem, setCurrentItem] = useState(0);
   const [gameComplete, setGameComplete] = useState(false);
   const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
@@ -166,8 +160,6 @@ const RecycleGame: React.FC<RecycleGameProps> = ({ onComplete }) => {
         setCurrentItem(currentItem + 1);
       } else {
         setGameComplete(true);
-        // Save game score to backend
-        engine.saveGameScore(engine.score);
         toast.success(`🎉 Game Complete! Final Score: ${engine.score}`, {
           style: {
             background: 'linear-gradient(135deg, #8B5CF6, #7C3AED)',

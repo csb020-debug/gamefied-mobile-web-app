@@ -24,8 +24,7 @@ import {
   UserPlus,
   Shield,
   BookOpen,
-  GraduationCap,
-  Home
+  GraduationCap
 } from 'lucide-react';
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
@@ -66,42 +65,11 @@ interface SchoolAdmin {
   created_at: string;
 }
 
-interface Student {
-  id: string;
-  nickname: string;
-  class_id: string;
-  created_at: string;
-  classes: {
-    name: string;
-    grade: string;
-    teacher_id: string;
-  };
-  submissions: {
-    score: number;
-    completed: boolean;
-  }[];
-}
-
-interface Class {
-  id: string;
-  name: string;
-  grade: string;
-  teacher_id: string;
-  created_at: string;
-  students: Student[];
-  teachers: {
-    full_name: string;
-    email: string;
-  };
-}
-
 const SchoolAdminDashboard = () => {
   const [schoolInfo, setSchoolInfo] = useState<SchoolInfo | null>(null);
   const [invitations, setInvitations] = useState<TeacherInvitation[]>([]);
   const [teachers, setTeachers] = useState<Teacher[]>([]);
   const [admins, setAdmins] = useState<SchoolAdmin[]>([]);
-  const [students, setStudents] = useState<Student[]>([]);
-  const [classes, setClasses] = useState<Class[]>([]);
   const [newTeacherEmail, setNewTeacherEmail] = useState('');
   const [newAdminEmail, setNewAdminEmail] = useState('');
   const [loading, setLoading] = useState(false);
@@ -122,129 +90,47 @@ const SchoolAdminDashboard = () => {
     
     setLoading(true);
     try {
-      // First get user's profile to check their role and school
-      const { data: userProfile, error: profileError } = await supabase
-        .from('user_profiles')
-        .select('*')
+      // Get user's school admin information
+      const { data: adminData, error: adminError } = await supabase
+        .from('school_admins')
+        .select('school_id, schools(*)')
         .eq('user_id', user.id)
         .single();
 
-      if (profileError) {
-        console.error('Error fetching user profile:', profileError);
-        throw new Error('Unable to load user profile. Please try again.');
+      if (adminError) throw adminError;
+
+      if (adminData) {
+        const school = adminData.schools;
+        setSchoolInfo(school);
+
+        // Load invitations for this school
+        const { data: invitationsData, error: invitationsError } = await supabase
+          .from('teacher_invitations')
+          .select('*')
+          .eq('school_id', school.id)
+          .order('created_at', { ascending: false });
+
+        if (invitationsError) throw invitationsError;
+        setInvitations(invitationsData || []);
+
+        // Load teachers for this school
+        const { data: teachersData, error: teachersError } = await supabase
+          .rpc('get_school_teachers', { school_id_param: school.id });
+
+        if (teachersError) throw teachersError;
+        setTeachers(teachersData || []);
+
+        // Load admins for this school
+        const { data: adminsData, error: adminsError } = await supabase
+          .rpc('get_school_admins', { school_id_param: school.id });
+
+        if (adminsError) throw adminsError;
+        setAdmins(adminsData || []);
       }
-
-      if (!userProfile || userProfile.role !== 'school_admin' || !userProfile.school_id) {
-        console.error('User is not a school admin or has no school assigned');
-        throw new Error('You do not have school admin access.');
-      }
-
-      // Get school information
-      const { data: school, error: schoolError } = await supabase
-        .from('schools')
-        .select('*')
-        .eq('id', userProfile.school_id)
-        .single();
-
-      if (schoolError) {
-        console.error('Error fetching school:', schoolError);
-        throw new Error('Unable to load school information.');
-      }
-
-      setSchoolInfo(school);
-
-      // Teacher invitations feature disabled until database table is available
-      setInvitations([]);
-
-      // Load teachers for this school from user_profiles
-      const { data: teachersData, error: teachersError } = await supabase
-        .from('user_profiles')
-        .select('*')
-        .eq('school_id', school.id)
-        .eq('role', 'teacher')
-        .order('created_at', { ascending: false });
-
-      if (teachersError && teachersError.code !== 'PGRST116') {
-        console.error('Error fetching teachers:', teachersError);
-      }
-      
-      // Map user_profiles to teacher format
-      const mappedTeachers = (teachersData || []).map(profile => ({
-        id: profile.id,
-        user_id: profile.user_id,
-        email: profile.email,
-        full_name: profile.full_name,
-        is_active: profile.is_active,
-        created_at: profile.created_at
-      }));
-      setTeachers(mappedTeachers);
-
-      // Load admins for this school from user_profiles
-      const { data: adminsData, error: adminsError } = await supabase
-        .from('user_profiles')
-        .select('*')
-        .eq('school_id', school.id)
-        .eq('role', 'school_admin')
-        .order('created_at', { ascending: false });
-
-      if (adminsError && adminsError.code !== 'PGRST116') {
-        console.error('Error fetching admins:', adminsError);
-      }
-      
-      // Map user_profiles to admin format
-      const mappedAdmins = (adminsData || []).map(profile => ({
-        id: profile.id,
-        user_id: profile.user_id,
-        email: profile.email,
-        full_name: profile.full_name,
-        created_at: profile.created_at
-      }));
-      setAdmins(mappedAdmins);
-
-      // Load classes for this school
-      const { data: classesData, error: classesError } = await supabase
-        .from('classes')
-        .select(`
-          id,
-          name,
-          grade,
-          teacher_id,
-          created_at,
-          students (
-            id,
-            nickname,
-            created_at,
-            submissions (score, completed)
-          ),
-          teachers:user_profiles!classes_teacher_id_fkey (
-            full_name,
-            email
-          )
-        `)
-        .eq('school_id', school.id);
-
-      if (classesError && classesError.code !== 'PGRST116') {
-        console.error('Error fetching classes:', classesError);
-      }
-      setClasses((classesData || []) as any[]);
-
-      // Flatten students from all classes
-      const allStudents = classesData?.flatMap(cls => 
-        cls.students?.map((student: any) => ({
-          ...student,
-          classes: {
-            name: cls.name,
-            grade: cls.grade,
-            teacher_id: cls.teacher_id
-          }
-        })) || []
-      ) || [];
-      setStudents(allStudents);
     } catch (error: any) {
-      console.error('Error in loadSchoolData:', error);
       toast({
         title: "Error",
-        description: error.message || "Failed to load school data",
+        description: error.message,
         variant: "destructive",
       });
     } finally {
@@ -256,12 +142,58 @@ const SchoolAdminDashboard = () => {
     e.preventDefault();
     if (!newTeacherEmail.trim() || !schoolInfo) return;
 
-    // Teacher invitation feature disabled until database table is available
-    toast({
-      title: "Feature Unavailable",
-      description: "Teacher invitation feature is not yet available",
-      variant: "destructive",
-    });
+    setInviteLoading(true);
+    try {
+      const { data, error } = await supabase.rpc('send_teacher_invitation', {
+        school_id_param: schoolInfo.id,
+        teacher_email_param: newTeacherEmail.trim(),
+        invited_by_param: user?.id
+      });
+
+      if (error) throw error;
+
+      if (data.success) {
+        // Send email notification
+        const invitationLink = `${window.location.origin}/teachers/invite/${data.invitation_token}`;
+        const emailResult = await sendTeacherInvitationEmail({
+          teacherEmail: newTeacherEmail.trim(),
+          schoolName: schoolInfo.name,
+          invitationLink,
+          expiresAt: data.expires_at,
+          invitedBy: user?.email || 'School Administrator'
+        });
+
+        if (emailResult.success) {
+          toast({
+            title: "Invitation sent!",
+            description: `Invitation sent to ${newTeacherEmail}`,
+          });
+        } else {
+          toast({
+            title: "Invitation created but email failed",
+            description: `Invitation created but email sending failed: ${emailResult.error}`,
+            variant: "destructive",
+          });
+        }
+        
+        setNewTeacherEmail('');
+        loadSchoolData(); // Reload invitations
+      } else {
+        toast({
+          title: "Error",
+          description: data.error || 'Failed to send invitation',
+          variant: "destructive",
+        });
+      }
+    } catch (error: any) {
+      toast({
+        title: "Error",
+        description: error.message,
+        variant: "destructive",
+      });
+    } finally {
+      setInviteLoading(false);
+    }
   };
 
   const addAdmin = async (e: React.FormEvent) => {
@@ -270,7 +202,7 @@ const SchoolAdminDashboard = () => {
 
     try {
       // First, create a user profile for the admin
-      const { data: profileData, error: profileError } = await (supabase as any).rpc('create_user_profile', {
+      const { data: profileData, error: profileError } = await supabase.rpc('create_user_profile', {
         user_id_param: user?.id, // This should be the new admin's user ID
         email_param: newAdminEmail.trim(),
         role_param: 'school_admin',
@@ -297,14 +229,14 @@ const SchoolAdminDashboard = () => {
 
   const updateTeacherStatus = async (teacherId: string, isActive: boolean) => {
     try {
-      const { data, error } = await (supabase as any).rpc('update_teacher_status', {
+      const { data, error } = await supabase.rpc('update_teacher_status', {
         teacher_id_param: teacherId,
         is_active_param: isActive
       });
 
       if (error) throw error;
 
-      if ((data as any)?.success) {
+      if (data.success) {
         toast({
           title: "Teacher status updated",
           description: `Teacher has been ${isActive ? 'activated' : 'deactivated'}`,
@@ -313,7 +245,7 @@ const SchoolAdminDashboard = () => {
       } else {
         toast({
           title: "Error",
-          description: (data as any)?.error || 'Failed to update teacher status',
+          description: data.error || 'Failed to update teacher status',
           variant: "destructive",
         });
       }
@@ -336,12 +268,26 @@ const SchoolAdminDashboard = () => {
   };
 
   const cancelInvitation = async (invitationId: string) => {
-    // Teacher invitations feature disabled until database table is available
-    toast({
-      title: "Feature Unavailable",
-      description: "Teacher invitations feature is not yet available",
-      variant: "destructive",
-    });
+    try {
+      const { error } = await supabase
+        .from('teacher_invitations')
+        .update({ status: 'cancelled' })
+        .eq('id', invitationId);
+
+      if (error) throw error;
+
+      toast({
+        title: "Invitation cancelled",
+        description: "The invitation has been cancelled",
+      });
+      loadSchoolData();
+    } catch (error: any) {
+      toast({
+        title: "Error",
+        description: error.message,
+        variant: "destructive",
+      });
+    }
   };
 
   const getStatusBadge = (status: string) => {
@@ -406,10 +352,6 @@ const SchoolAdminDashboard = () => {
             </p>
           </div>
           <div className="flex gap-2">
-            <Button onClick={() => navigate('/')} variant="outline">
-              <Home className="h-4 w-4 mr-2" />
-              Home
-            </Button>
             <Button onClick={() => navigate('/teacher/dashboard')} variant="outline">
               <BookOpen className="h-4 w-4 mr-2" />
               Teacher View
@@ -458,28 +400,6 @@ const SchoolAdminDashboard = () => {
               Invitations ({invitations.length})
             </button>
             <button
-              onClick={() => setActiveTab('students')}
-              className={`py-2 px-1 border-b-2 font-medium text-sm ${
-                activeTab === 'students'
-                  ? 'border-primary text-primary'
-                  : 'border-transparent text-muted-foreground hover:text-foreground'
-              }`}
-            >
-              <Users className="h-4 w-4 mr-2 inline" />
-              Students ({students.length})
-            </button>
-            <button
-              onClick={() => setActiveTab('classes')}
-              className={`py-2 px-1 border-b-2 font-medium text-sm ${
-                activeTab === 'classes'
-                  ? 'border-primary text-primary'
-                  : 'border-transparent text-muted-foreground hover:text-foreground'
-              }`}
-            >
-              <BookOpen className="h-4 w-4 mr-2 inline" />
-              Classes ({classes.length})
-            </button>
-            <button
               onClick={() => setActiveTab('admins')}
               className={`py-2 px-1 border-b-2 font-medium text-sm ${
                 activeTab === 'admins'
@@ -495,112 +415,45 @@ const SchoolAdminDashboard = () => {
 
         {/* Tab Content */}
         {activeTab === 'overview' && (
-          <div className="space-y-6">
-            <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-6">
-              <Card>
-                <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                  <CardTitle className="text-sm font-medium">Total Students</CardTitle>
-                  <Users className="h-4 w-4 text-muted-foreground" />
-                </CardHeader>
-                <CardContent>
-                  <div className="text-2xl font-bold">{students.length}</div>
-                  <p className="text-xs text-muted-foreground">
-                    Across {classes.length} classes
-                  </p>
-                </CardContent>
-              </Card>
-
-              <Card>
-                <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                  <CardTitle className="text-sm font-medium">Total Teachers</CardTitle>
-                  <GraduationCap className="h-4 w-4 text-muted-foreground" />
-                </CardHeader>
-                <CardContent>
-                  <div className="text-2xl font-bold">{teachers.length}</div>
-                  <p className="text-xs text-muted-foreground">
-                    {teachers.filter(t => t.is_active).length} active
-                  </p>
-                </CardContent>
-              </Card>
-
-              <Card>
-                <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                  <CardTitle className="text-sm font-medium">Classes</CardTitle>
-                  <BookOpen className="h-4 w-4 text-muted-foreground" />
-                </CardHeader>
-                <CardContent>
-                  <div className="text-2xl font-bold">{classes.length}</div>
-                  <p className="text-xs text-muted-foreground">
-                    Active classes
-                  </p>
-                </CardContent>
-              </Card>
-
-              <Card>
-                <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                  <CardTitle className="text-sm font-medium">Pending Invitations</CardTitle>
-                  <Mail className="h-4 w-4 text-muted-foreground" />
-                </CardHeader>
-                <CardContent>
-                  <div className="text-2xl font-bold">
-                    {invitations.filter(i => i.status === 'pending').length}
-                  </div>
-                  <p className="text-xs text-muted-foreground">
-                    {invitations.filter(i => i.status === 'accepted').length} accepted
-                  </p>
-                </CardContent>
-              </Card>
-            </div>
-
-            {/* Recent Activity */}
+          <div className="grid md:grid-cols-3 gap-6">
             <Card>
-              <CardHeader>
-                <CardTitle>School Overview</CardTitle>
-                <CardDescription>Key metrics and recent activity</CardDescription>
+              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                <CardTitle className="text-sm font-medium">Total Teachers</CardTitle>
+                <GraduationCap className="h-4 w-4 text-muted-foreground" />
               </CardHeader>
               <CardContent>
-                <div className="grid md:grid-cols-2 gap-6">
-                  <div>
-                    <h4 className="font-medium mb-3">Top Performing Classes</h4>
-                    <div className="space-y-2">
-                      {classes.slice(0, 3).map((cls, index) => {
-                        const totalPoints = cls.students?.reduce((sum, student) => 
-                          sum + (student.submissions?.reduce((s, sub) => s + (sub.score || 0), 0) || 0), 0
-                        ) || 0;
-                        return (
-                          <div key={cls.id} className="flex items-center justify-between p-2 border rounded">
-                            <div>
-                              <span className="font-medium">{cls.name}</span>
-                              <div className="text-sm text-muted-foreground">
-                                Grade {cls.grade} • {cls.students?.length || 0} students
-                              </div>
-                            </div>
-                            <div className="text-right">
-                              <div className="font-bold">{totalPoints}</div>
-                              <div className="text-xs text-muted-foreground">points</div>
-                            </div>
-                          </div>
-                        );
-                      })}
-                    </div>
-                  </div>
-                  <div>
-                    <h4 className="font-medium mb-3">School Admins</h4>
-                    <div className="space-y-2">
-                      {admins.slice(0, 3).map((admin) => (
-                        <div key={admin.id} className="flex items-center gap-3 p-2 border rounded">
-                          <Shield className="h-4 w-4 text-muted-foreground" />
-                          <div>
-                            <span className="font-medium">{admin.full_name || admin.email}</span>
-                            <div className="text-sm text-muted-foreground">
-                              {admin.user_id === user?.id ? 'You' : 'Admin'}
-                            </div>
-                          </div>
-                        </div>
-                      ))}
-                    </div>
-                  </div>
+                <div className="text-2xl font-bold">{teachers.length}</div>
+                <p className="text-xs text-muted-foreground">
+                  {teachers.filter(t => t.is_active).length} active
+                </p>
+              </CardContent>
+            </Card>
+
+            <Card>
+              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                <CardTitle className="text-sm font-medium">Pending Invitations</CardTitle>
+                <Mail className="h-4 w-4 text-muted-foreground" />
+              </CardHeader>
+              <CardContent>
+                <div className="text-2xl font-bold">
+                  {invitations.filter(i => i.status === 'pending').length}
                 </div>
+                <p className="text-xs text-muted-foreground">
+                  {invitations.filter(i => i.status === 'accepted').length} accepted
+                </p>
+              </CardContent>
+            </Card>
+
+            <Card>
+              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                <CardTitle className="text-sm font-medium">School Admins</CardTitle>
+                <Shield className="h-4 w-4 text-muted-foreground" />
+              </CardHeader>
+              <CardContent>
+                <div className="text-2xl font-bold">{admins.length}</div>
+                <p className="text-xs text-muted-foreground">
+                  Including you
+                </p>
               </CardContent>
             </Card>
           </div>
@@ -762,124 +615,6 @@ const SchoolAdminDashboard = () => {
                         </div>
                       </div>
                     ))}
-                  </div>
-                )}
-              </CardContent>
-            </Card>
-          </div>
-        )}
-
-        {activeTab === 'students' && (
-          <div className="space-y-6">
-            <Card>
-              <CardHeader>
-                <CardTitle className="flex items-center gap-2">
-                  <Users className="h-5 w-5" />
-                  All Students
-                </CardTitle>
-                <CardDescription>
-                  View all students across all classes in your school
-                </CardDescription>
-              </CardHeader>
-              <CardContent>
-                {students.length === 0 ? (
-                  <div className="text-center py-8 text-muted-foreground">
-                    <Users className="h-12 w-12 mx-auto mb-4 opacity-50" />
-                    <p>No students found</p>
-                    <p className="text-sm">Students will appear here once they join classes</p>
-                  </div>
-                ) : (
-                  <div className="space-y-4">
-                    {students.map((student) => {
-                      const totalPoints = student.submissions?.reduce((sum, sub) => sum + (sub.score || 0), 0) || 0;
-                      const completedChallenges = student.submissions?.filter(sub => sub.completed).length || 0;
-                      return (
-                        <div
-                          key={student.id}
-                          className="flex items-center justify-between p-4 border rounded-lg"
-                        >
-                          <div className="flex-1">
-                            <div className="flex items-center gap-3">
-                              <Users className="h-4 w-4 text-muted-foreground" />
-                              <div>
-                                <span className="font-medium">{student.nickname}</span>
-                                <div className="text-sm text-muted-foreground">
-                                  Class: {student.classes?.name} (Grade {student.classes?.grade})
-                                </div>
-                              </div>
-                            </div>
-                            <div className="text-sm text-muted-foreground mt-1">
-                              Joined: {new Date(student.created_at).toLocaleDateString()}
-                            </div>
-                          </div>
-                          <div className="text-right">
-                            <div className="font-bold text-lg">{totalPoints}</div>
-                            <div className="text-xs text-muted-foreground">points</div>
-                            <div className="text-xs text-muted-foreground">{completedChallenges} challenges</div>
-                          </div>
-                        </div>
-                      );
-                    })}
-                  </div>
-                )}
-              </CardContent>
-            </Card>
-          </div>
-        )}
-
-        {activeTab === 'classes' && (
-          <div className="space-y-6">
-            <Card>
-              <CardHeader>
-                <CardTitle className="flex items-center gap-2">
-                  <BookOpen className="h-5 w-5" />
-                  All Classes
-                </CardTitle>
-                <CardDescription>
-                  View all classes and their performance in your school
-                </CardDescription>
-              </CardHeader>
-              <CardContent>
-                {classes.length === 0 ? (
-                  <div className="text-center py-8 text-muted-foreground">
-                    <BookOpen className="h-12 w-12 mx-auto mb-4 opacity-50" />
-                    <p>No classes found</p>
-                    <p className="text-sm">Classes will appear here once teachers create them</p>
-                  </div>
-                ) : (
-                  <div className="space-y-4">
-                    {classes.map((cls) => {
-                      const totalPoints = cls.students?.reduce((sum, student) => 
-                        sum + (student.submissions?.reduce((s, sub) => s + (sub.score || 0), 0) || 0), 0
-                      ) || 0;
-                      const avgPoints = cls.students?.length ? Math.round(totalPoints / cls.students.length) : 0;
-                      return (
-                        <div
-                          key={cls.id}
-                          className="flex items-center justify-between p-4 border rounded-lg"
-                        >
-                          <div className="flex-1">
-                            <div className="flex items-center gap-3">
-                              <BookOpen className="h-4 w-4 text-muted-foreground" />
-                              <div>
-                                <span className="font-medium">{cls.name}</span>
-                                <div className="text-sm text-muted-foreground">
-                                  Grade {cls.grade} • Teacher: {cls.teachers?.full_name || 'Unknown'}
-                                </div>
-                              </div>
-                            </div>
-                            <div className="text-sm text-muted-foreground mt-1">
-                              Created: {new Date(cls.created_at).toLocaleDateString()}
-                            </div>
-                          </div>
-                          <div className="text-right">
-                            <div className="font-bold text-lg">{cls.students?.length || 0}</div>
-                            <div className="text-xs text-muted-foreground">students</div>
-                            <div className="text-xs text-muted-foreground">{avgPoints} avg points</div>
-                          </div>
-                        </div>
-                      );
-                    })}
                   </div>
                 )}
               </CardContent>

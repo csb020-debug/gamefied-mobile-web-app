@@ -91,9 +91,9 @@ const ClassDiscussions: React.FC<ClassDiscussionsProps> = ({ classId, className 
 
       if (error) throw error;
 
-      const processedDiscussions = (data || []).map((discussion: any) => ({
+      const processedDiscussions = (data || []).map(discussion => ({
         ...discussion,
-        posts_count: Number(discussion.posts_count?.[0]?.count ?? 0),
+        posts_count: discussion.posts_count?.[0]?.count || 0,
         last_activity: discussion.last_activity?.[0]?.created_at || discussion.created_at
       }));
 
@@ -124,10 +124,10 @@ const ClassDiscussions: React.FC<ClassDiscussionsProps> = ({ classId, className 
 
       if (error) throw error;
 
-      const processedPosts = (data || []).map((post: any) => ({
+      const processedPosts = (data || []).map(post => ({
         ...post,
-        replies_count: Number(post.replies_count?.[0]?.count ?? 0),
-        likes_count: Number(post.likes_count?.[0]?.count ?? 0)
+        replies_count: post.replies_count?.[0]?.count || 0,
+        likes_count: post.likes_count?.[0]?.count || 0
       }));
 
       setPosts(processedPosts);

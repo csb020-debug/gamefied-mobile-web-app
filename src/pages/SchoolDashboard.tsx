@@ -81,7 +81,7 @@ const SchoolDashboard = () => {
           .order('created_at', { ascending: false });
 
         if (invitationsError) throw invitationsError;
-        setInvitations((invitationsData || []) as TeacherInvitation[]);
+        setInvitations(invitationsData || []);
       }
     } catch (error: any) {
       toast({
@@ -108,14 +108,14 @@ const SchoolDashboard = () => {
 
       if (error) throw error;
 
-      if ((data as any).success) {
+      if (data.success) {
         // Send email notification
-        const invitationLink = `${window.location.origin}/teachers/invite/${(data as any).invitation_token}`;
+        const invitationLink = `${window.location.origin}/teachers/invite/${data.invitation_token}`;
         const emailResult = await sendTeacherInvitationEmail({
           teacherEmail: newTeacherEmail.trim(),
           schoolName: schoolInfo.name,
           invitationLink,
-          expiresAt: (data as any).expires_at,
+          expiresAt: data.expires_at,
           invitedBy: user?.email || 'School Administrator'
         });
 
@@ -127,7 +127,7 @@ const SchoolDashboard = () => {
         } else {
           toast({
             title: "Invitation created but email failed",
-            description: `Invitation created but email sending failed: ${(emailResult as any).error}`,
+            description: `Invitation created but email sending failed: ${emailResult.error}`,
             variant: "destructive",
           });
         }
@@ -137,7 +137,7 @@ const SchoolDashboard = () => {
       } else {
         toast({
           title: "Error",
-          description: (data as any).error || 'Failed to send invitation',
+          description: data.error || 'Failed to send invitation',
           variant: "destructive",
         });
       }
@@ -222,7 +222,7 @@ const SchoolDashboard = () => {
             </CardDescription>
           </CardHeader>
           <CardContent>
-            <Button onClick={() => navigate('/school-admin/signup')} className="w-full">
+            <Button onClick={() => navigate('/schools/register')} className="w-full">
               Register School
             </Button>
           </CardContent>

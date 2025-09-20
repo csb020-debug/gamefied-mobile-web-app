@@ -1,72 +1,38 @@
-import React, { useState, useEffect } from "react";
+import React, { useState } from "react";
 import Footer from "../components/learning-companion/Footer";
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { AnimatedProgress } from "@/components/ui/AnimatedProgress";
-import { useLeaderboard } from "@/hooks/useLeaderboard";
-import { useStudent } from "@/hooks/useStudent";
-import { useAuth } from "@/hooks/useAuth";
-import { useNavigate } from "react-router-dom";
-import { Button } from "@/components/ui/button";
  
 
 const Leaderboard: React.FC = () => {
   const [selectedTab, setSelectedTab] = useState("students");
-  const { studentLeaderboard, schoolLeaderboard, loading, getStudentStats } = useLeaderboard();
-  const { currentStudent, currentClass } = useStudent();
-  const { user, userProfile } = useAuth();
-  const navigate = useNavigate();
-  
-  const studentStats = getStudentStats();
 
-  // Fallback data for weekly toppers (this could be enhanced with real data)
-  const weeklyToppers = (studentLeaderboard || []).slice(0, 3).map(student => ({
-    name: student.name || 'Unknown Student',
-    points: Math.floor((student.points || 0) / 10), // Show weekly subset
-    achievement: student.rank === 1 ? "Top Performer" : student.rank === 2 ? "Quiz Master" : "Eco Warrior"
-  }));
+  const studentLeaderboard = [
+    { rank: 1, name: "Emma Green", school: "Eco High School", points: 2850, streak: 15, badge: "🥇" },
+    { rank: 2, name: "Alex River", school: "Nature Academy", points: 2720, streak: 12, badge: "🥈" },
+    { rank: 3, name: "Sam Forest", school: "Green Valley School", points: 2650, streak: 18, badge: "🥉" },
+    { rank: 4, name: "Maya Ocean", school: "Eco High School", points: 2500, streak: 9, badge: "" },
+    { rank: 5, name: "You", school: "Eco High School", points: 1250, streak: 5, badge: "", isCurrentUser: true },
+    { rank: 6, name: "Jake Stone", school: "Earth School", points: 1180, streak: 7, badge: "" },
+    { rank: 7, name: "Luna Sky", school: "Nature Academy", points: 1050, streak: 4, badge: "" },
+    { rank: 8, name: "Rio Wind", school: "Green Valley School", points: 980, streak: 6, badge: "" },
+  ];
 
-  if (loading) {
-    return (
-      <div className="min-h-screen bg-background relative flex items-center justify-center">
-        <div className="text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto mb-4"></div>
-          <p className="text-muted-foreground">Loading leaderboard...</p>
-        </div>
-      </div>
-    );
-  }
+  const schoolLeaderboard = [
+    { rank: 1, name: "Eco High School", totalPoints: 15420, students: 186, avgPoints: 83, badge: "🏆" },
+    { rank: 2, name: "Nature Academy", totalPoints: 14890, students: 201, avgPoints: 74, badge: "🥈" },
+    { rank: 3, name: "Green Valley School", totalPoints: 13650, students: 165, avgPoints: 83, badge: "🥉" },
+    { rank: 4, name: "Earth School", totalPoints: 12300, students: 143, avgPoints: 86, badge: "" },
+    { rank: 5, name: "Sustainability College", totalPoints: 11800, students: 198, avgPoints: 60, badge: "" },
+  ];
 
-  // Check if user is authenticated
-  if (!user) {
-    return (
-      <div className="min-h-screen bg-background relative flex items-center justify-center">
-        <div className="text-center">
-          <h1 className="text-2xl font-bold mb-4">Please Sign In</h1>
-          <p className="text-muted-foreground mb-6">You need to sign in to view the leaderboard.</p>
-          <Button onClick={() => navigate('/teachers/signup')}>
-            Sign In
-          </Button>
-        </div>
-      </div>
-    );
-  }
-
-  // For students, check if they've joined a class
-  if (userProfile?.role === 'student' && (!currentStudent || !currentClass)) {
-    return (
-      <div className="min-h-screen bg-background relative flex items-center justify-center">
-        <div className="text-center">
-          <h1 className="text-2xl font-bold mb-4">Join a Class First</h1>
-          <p className="text-muted-foreground mb-6">You need to join a class to view the leaderboard.</p>
-          <Button onClick={() => navigate('/join')}>
-            Join Class
-          </Button>
-        </div>
-      </div>
-    );
-  }
+  const weeklyToppers = [
+    { name: "Emma Green", points: 450, achievement: "Challenge Master" },
+    { name: "Alex River", points: 380, achievement: "Quiz Champion" },
+    { name: "Sam Forest", points: 350, achievement: "Eco Warrior" },
+  ];
 
   return (
     <div className="min-h-screen bg-background relative">
@@ -108,7 +74,7 @@ const Leaderboard: React.FC = () => {
 
             <TabsContent value="students" className="space-y-4 sm:space-y-6">
               <div className="grid gap-3 sm:gap-4">
-                {(studentLeaderboard || []).map((student) => (
+                {studentLeaderboard.map((student) => (
                   <Card key={student.rank} className={`p-4 sm:p-6 ${student.isCurrentUser ? 'ring-2 ring-[#B8EE7C] bg-[#B8EE7C]/5' : ''}`}>
                     <div className="flex items-center justify-between">
                       <div className="flex items-center gap-3 sm:gap-4 min-w-0 flex-1">
@@ -139,19 +105,19 @@ const Leaderboard: React.FC = () => {
                 <h3 className="text-base sm:text-lg font-bold text-black mb-3 sm:mb-4">Your Stats This Month</h3>
                 <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
                   <div className="text-center">
-                    <div className="text-xl sm:text-2xl font-bold text-[#B8EE7C]">{studentStats?.pointsGained || 0}</div>
+                    <div className="text-xl sm:text-2xl font-bold text-[#B8EE7C]">350</div>
                     <div className="text-xs sm:text-sm text-gray-600">Points Gained</div>
                   </div>
                   <div className="text-center">
-                    <div className="text-xl sm:text-2xl font-bold text-[#B8EE7C]">+{studentStats?.rankChange || 0}</div>
+                    <div className="text-xl sm:text-2xl font-bold text-[#B8EE7C]">+12</div>
                     <div className="text-xs sm:text-sm text-gray-600">Rank Change</div>
                   </div>
                   <div className="text-center">
-                    <div className="text-xl sm:text-2xl font-bold text-[#B8EE7C]">{studentStats?.challengesDone || 0}</div>
+                    <div className="text-xl sm:text-2xl font-bold text-[#B8EE7C]">8</div>
                     <div className="text-xs sm:text-sm text-gray-600">Challenges Done</div>
                   </div>
                   <div className="text-center">
-                    <div className="text-xl sm:text-2xl font-bold text-[#B8EE7C]">{studentStats?.gamesPlayed || 0}</div>
+                    <div className="text-xl sm:text-2xl font-bold text-[#B8EE7C]">15</div>
                     <div className="text-xs sm:text-sm text-gray-600">Games Played</div>
                   </div>
                 </div>
@@ -160,7 +126,7 @@ const Leaderboard: React.FC = () => {
 
             <TabsContent value="schools" className="space-y-4 sm:space-y-6">
               <div className="grid gap-3 sm:gap-4">
-                {(schoolLeaderboard || []).map((school) => (
+                {schoolLeaderboard.map((school) => (
                   <Card key={school.rank} className="p-4 sm:p-6">
                     <div className="flex items-center justify-between">
                       <div className="flex items-center gap-3 sm:gap-4 min-w-0 flex-1">

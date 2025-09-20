@@ -7,7 +7,6 @@ import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
 import { useChallenges } from "@/hooks/useChallenges";
 import { useStudent } from "@/hooks/useStudent";
-import { useAuth } from "@/hooks/useAuth";
 import { useNavigate } from "react-router-dom";
 import { Calendar, Target, BookOpen, GamepadIcon } from "lucide-react";
  
@@ -15,7 +14,6 @@ import { Calendar, Target, BookOpen, GamepadIcon } from "lucide-react";
 const Challenges: React.FC = () => {
   const { challenges, loading, getSubmissionForChallenge, completeChallenge, getChallengeStats } = useChallenges();
   const { currentStudent, currentClass } = useStudent();
-  const { user, userProfile } = useAuth();
   const navigate = useNavigate();
 
   const stats = getChallengeStats();
@@ -69,23 +67,7 @@ const Challenges: React.FC = () => {
     );
   }
 
-  // Check if user is authenticated
-  if (!user) {
-    return (
-      <div className="min-h-screen bg-background relative flex items-center justify-center">
-        <div className="text-center">
-          <h1 className="text-2xl font-bold mb-4">Please Sign In</h1>
-          <p className="text-muted-foreground mb-6">You need to sign in to access challenges.</p>
-          <Button onClick={() => navigate('/teachers/signup')}>
-            Sign In
-          </Button>
-        </div>
-      </div>
-    );
-  }
-
-  // For students, check if they've joined a class
-  if (userProfile?.role === 'student' && (!currentStudent || !currentClass)) {
+  if (!currentStudent || !currentClass) {
     return (
       <div className="min-h-screen bg-background relative flex items-center justify-center">
         <div className="text-center">
@@ -157,7 +139,7 @@ const Challenges: React.FC = () => {
                   <Card key={challenge.id} className={`p-4 sm:p-6 hover:shadow-lg transition-shadow`}>
                     <div className="flex justify-between items-start mb-3 sm:mb-4">
                       <div className="text-2xl sm:text-3xl">
-                        {getChallengeIcon(challenge.type, (challenge.config as any)?.category)}
+                        {getChallengeIcon(challenge.type, challenge.config?.category)}
                       </div>
                       {isCompleted && <div className="text-xl sm:text-2xl">✅</div>}
                     </div>
@@ -166,11 +148,11 @@ const Challenges: React.FC = () => {
                     <p className="text-sm sm:text-base text-gray-600 mb-3 sm:mb-4">{challenge.description}</p>
 
                     <div className="flex flex-wrap gap-1 sm:gap-2 mb-3 sm:mb-4">
-                      <Badge variant="outline" className={`text-xs ${getDifficultyColor((challenge.config as any)?.difficulty)}`}>
-                        {(challenge.config as any)?.difficulty || 'Easy'}
+                      <Badge variant="outline" className={`text-xs ${getDifficultyColor(challenge.config?.difficulty)}`}>
+                        {challenge.config?.difficulty || 'Easy'}
                       </Badge>
                       <Badge variant="outline" className="text-xs">
-                        {(challenge.config as any)?.category || 'Challenge'}
+                        {challenge.config?.category || 'Challenge'}
                       </Badge>
                       <Badge variant="outline" className="text-xs">
                         {challenge.type}
@@ -179,7 +161,7 @@ const Challenges: React.FC = () => {
 
                     <div className="text-center mb-3 sm:mb-4">
                       <span className="text-base sm:text-lg font-bold text-[#B8EE7C]">
-                        🌿 {(challenge.config as any)?.points || 100} points
+                        🌿 {challenge.config?.points || 100} points
                       </span>
                     </div>
 
@@ -190,9 +172,9 @@ const Challenges: React.FC = () => {
                       </div>
                     )}
 
-                    {(challenge.config as any)?.instructions && (
+                    {challenge.config?.instructions && (
                       <div className="text-xs text-gray-500 mb-3 sm:mb-4">
-                        <strong>Instructions:</strong> {(challenge.config as any).instructions}
+                        <strong>Instructions:</strong> {challenge.config.instructions}
                       </div>
                     )}
 

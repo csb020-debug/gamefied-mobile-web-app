@@ -88,11 +88,10 @@ const Learn: React.FC = () => {
                       <CardContent>
                         <div className="space-y-4">
                           <div className="flex items-center justify-between text-sm text-muted-foreground">
-                            <span>🌿 {(quiz as any)?.config?.totalPoints ?? 100} points</span>
+                            <span>🌿 {quiz.config?.totalPoints || 100} points</span>
                             <span className="flex items-center">
                               <Clock className="h-4 w-4 mr-1" />
-                              {((quiz as any)?.config?.questions ?? []).length}
-                              {" "}questions
+                              {quiz.config?.questions?.length || 0} questions
                             </span>
                           </div>
 
