@@ -120,48 +120,7 @@ ALTER TABLE public.assignments ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.submissions ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.achievement_unlocks ENABLE ROW LEVEL SECURITY;
 
--- Create basic RLS policies (simplified to avoid circular references)
--- Schools policies
-CREATE POLICY "Anyone can view schools" ON public.schools FOR SELECT USING (true);
-CREATE POLICY "Authenticated users can create schools" ON public.schools FOR INSERT WITH CHECK (auth.role() = 'authenticated');
-
--- User profiles policies
-CREATE POLICY "Users can view their own profile" ON public.user_profiles FOR SELECT USING (auth.uid() = user_id);
-CREATE POLICY "Users can update their own profile" ON public.user_profiles FOR UPDATE USING (auth.uid() = user_id);
-CREATE POLICY "Users can create their own profile" ON public.user_profiles FOR INSERT WITH CHECK (auth.uid() = user_id);
-
--- School admins policies (simplified)
-CREATE POLICY "School admins can view their own records" ON public.school_admins FOR SELECT USING (auth.uid() = user_id);
-CREATE POLICY "School admins can create their own records" ON public.school_admins FOR INSERT WITH CHECK (auth.uid() = user_id);
-
--- Teachers policies
-CREATE POLICY "Teachers can view their own record" ON public.teachers FOR SELECT USING (auth.uid() = user_id);
-CREATE POLICY "Teachers can create their own record" ON public.teachers FOR INSERT WITH CHECK (auth.uid() = user_id);
-
--- Classes policies
-CREATE POLICY "Teachers can view their own classes" ON public.classes FOR SELECT USING (auth.uid() = teacher_id);
-CREATE POLICY "Teachers can create their own classes" ON public.classes FOR INSERT WITH CHECK (auth.uid() = teacher_id);
-CREATE POLICY "Teachers can update their own classes" ON public.classes FOR UPDATE USING (auth.uid() = teacher_id);
-CREATE POLICY "Teachers can delete their own classes" ON public.classes FOR DELETE USING (auth.uid() = teacher_id);
-
--- Students policies
-CREATE POLICY "Anyone can view students" ON public.students FOR SELECT USING (true);
-CREATE POLICY "Anyone can create students" ON public.students FOR INSERT WITH CHECK (true);
-
--- Assignments policies
-CREATE POLICY "Anyone can view assignments" ON public.assignments FOR SELECT USING (true);
-CREATE POLICY "Teachers can manage assignments" ON public.assignments FOR ALL USING (
-  class_id IN (SELECT id FROM public.classes WHERE teacher_id = auth.uid())
-);
-
--- Submissions policies
-CREATE POLICY "Anyone can view submissions" ON public.submissions FOR SELECT USING (true);
-CREATE POLICY "Anyone can create submissions" ON public.submissions FOR INSERT WITH CHECK (true);
-CREATE POLICY "Anyone can update submissions" ON public.submissions FOR UPDATE USING (true);
-
--- Achievement unlocks policies
-CREATE POLICY "Anyone can view achievement unlocks" ON public.achievement_unlocks FOR SELECT USING (true);
-CREATE POLICY "Anyone can create achievement unlocks" ON public.achievement_unlocks FOR INSERT WITH CHECK (true);
+-- RLS policies will be created in a separate migration to avoid conflicts
 
 -- Create helper functions
 CREATE OR REPLACE FUNCTION public.update_updated_at_column()
@@ -286,3 +245,4 @@ EXCEPTION
     RETURN json_build_object('success', false, 'error', SQLERRM);
 END;
 $$ LANGUAGE plpgsql;
+

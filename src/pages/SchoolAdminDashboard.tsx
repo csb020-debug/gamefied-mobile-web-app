@@ -142,7 +142,7 @@ const SchoolAdminDashboard = () => {
           .order('created_at', { ascending: false });
 
         if (invitationsError) throw invitationsError;
-        setInvitations(invitationsData || []);
+        setInvitations((invitationsData || []) as TeacherInvitation[]);
 
         // Load teachers for this school
         const { data: teachersData, error: teachersError } = await (supabase as any)
@@ -181,7 +181,7 @@ const SchoolAdminDashboard = () => {
           .eq('school_id', school.id);
 
         if (classesError) throw classesError;
-        setClasses(classesData || []);
+        setClasses((classesData || []) as any[]);
 
         // Flatten students from all classes
         const allStudents = classesData?.flatMap(cls => 

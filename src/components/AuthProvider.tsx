@@ -21,7 +21,7 @@ interface ProtectedRouteProps {
 }
 
 export const ProtectedRoute: React.FC<ProtectedRouteProps> = ({ children }) => {
-  const { user, loading } = useAuthState();
+  const { user, userProfile, loading } = useAuthState();
 
   if (loading) {
     return (
@@ -35,7 +35,12 @@ export const ProtectedRoute: React.FC<ProtectedRouteProps> = ({ children }) => {
   }
 
   if (!user) {
-    return <Navigate to="/teachers/signup" replace />;
+    return <Navigate to="/school-admin/signup" replace />;
+  }
+
+  // If user is authenticated but doesn't have a profile, redirect to school admin signup
+  if (user && !userProfile) {
+    return <Navigate to="/school-admin/signup" replace />;
   }
 
   return <>{children}</>;

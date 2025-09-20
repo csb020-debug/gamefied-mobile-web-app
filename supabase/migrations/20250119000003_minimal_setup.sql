@@ -83,27 +83,5 @@ ALTER TABLE public.students ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.assignments ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.submissions ENABLE ROW LEVEL SECURITY;
 
--- Create basic policies
-CREATE POLICY "Anyone can view schools" ON public.schools FOR SELECT USING (true);
-CREATE POLICY "Authenticated users can create schools" ON public.schools FOR INSERT WITH CHECK (auth.role() = 'authenticated');
+-- Policies are created in other migrations to avoid conflicts
 
-CREATE POLICY "Users can view their own profile" ON public.user_profiles FOR SELECT USING (auth.uid() = user_id);
-CREATE POLICY "Users can update their own profile" ON public.user_profiles FOR UPDATE USING (auth.uid() = user_id);
-CREATE POLICY "Users can create their own profile" ON public.user_profiles FOR INSERT WITH CHECK (auth.uid() = user_id);
-
-CREATE POLICY "Teachers can view their own classes" ON public.classes FOR SELECT USING (auth.uid() = teacher_id);
-CREATE POLICY "Teachers can create their own classes" ON public.classes FOR INSERT WITH CHECK (auth.uid() = teacher_id);
-CREATE POLICY "Teachers can update their own classes" ON public.classes FOR UPDATE USING (auth.uid() = teacher_id);
-CREATE POLICY "Teachers can delete their own classes" ON public.classes FOR DELETE USING (auth.uid() = teacher_id);
-
-CREATE POLICY "Anyone can view students" ON public.students FOR SELECT USING (true);
-CREATE POLICY "Anyone can create students" ON public.students FOR INSERT WITH CHECK (true);
-
-CREATE POLICY "Anyone can view assignments" ON public.assignments FOR SELECT USING (true);
-CREATE POLICY "Teachers can manage assignments" ON public.assignments FOR ALL USING (
-  class_id IN (SELECT id FROM public.classes WHERE teacher_id = auth.uid())
-);
-
-CREATE POLICY "Anyone can view submissions" ON public.submissions FOR SELECT USING (true);
-CREATE POLICY "Anyone can create submissions" ON public.submissions FOR INSERT WITH CHECK (true);
-CREATE POLICY "Anyone can update submissions" ON public.submissions FOR UPDATE USING (true);

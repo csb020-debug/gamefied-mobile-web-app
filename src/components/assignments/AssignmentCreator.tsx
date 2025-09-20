@@ -6,10 +6,7 @@ import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
-import { Calendar } from '@/components/ui/calendar';
-import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
-import { CalendarIcon, Plus, GamepadIcon, BookOpen, Target, Leaf, Zap, Recycle } from 'lucide-react';
-import { format } from 'date-fns';
+import { Plus, GamepadIcon, BookOpen, Target, Leaf, Zap, Recycle } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
@@ -25,7 +22,6 @@ const ChallengeCreator: React.FC<ChallengeCreatorProps> = ({ classId, onChalleng
     title: '',
     description: '',
     type: 'game' as 'game' | 'challenge' | 'quiz',
-    dueDate: null as Date | null,
     points: 100,
     instructions: '',
     difficulty: 'easy' as 'easy' | 'medium' | 'hard',
@@ -47,7 +43,7 @@ const ChallengeCreator: React.FC<ChallengeCreatorProps> = ({ classId, onChalleng
           title: formData.title.trim(),
           description: formData.description.trim(),
           type: formData.type,
-          due_at: formData.dueDate?.toISOString() || null,
+          due_at: null,
           config: {
             points: formData.points,
             instructions: formData.instructions.trim(),
@@ -69,7 +65,6 @@ const ChallengeCreator: React.FC<ChallengeCreatorProps> = ({ classId, onChalleng
         title: '',
         description: '',
         type: 'game',
-        dueDate: null,
         points: 100,
         instructions: '',
         difficulty: 'easy',
@@ -253,33 +248,6 @@ const ChallengeCreator: React.FC<ChallengeCreatorProps> = ({ classId, onChalleng
             </div>
           </div>
 
-          {/* Due Date */}
-          <div className="space-y-2">
-            <Label>Due Date (Optional)</Label>
-            <Popover>
-              <PopoverTrigger asChild>
-                <Button
-                  variant="outline"
-                  className={cn(
-                    "w-full justify-start text-left font-normal",
-                    !formData.dueDate && "text-muted-foreground"
-                  )}
-                >
-                  <CalendarIcon className="mr-2 h-4 w-4" />
-                  {formData.dueDate ? format(formData.dueDate, "PPP") : "Select due date"}
-                </Button>
-              </PopoverTrigger>
-              <PopoverContent className="w-auto p-0" align="start">
-                <Calendar
-                  mode="single"
-                  selected={formData.dueDate || undefined}
-                  onSelect={(date) => setFormData({ ...formData, dueDate: date || null })}
-                  disabled={(date) => date < new Date()}
-                  initialFocus
-                />
-              </PopoverContent>
-            </Popover>
-          </div>
 
           {/* Submit Button */}
           <div className="flex justify-end space-x-2">

@@ -157,7 +157,7 @@ const Challenges: React.FC = () => {
                   <Card key={challenge.id} className={`p-4 sm:p-6 hover:shadow-lg transition-shadow`}>
                     <div className="flex justify-between items-start mb-3 sm:mb-4">
                       <div className="text-2xl sm:text-3xl">
-                        {getChallengeIcon(challenge.type, challenge.config?.category)}
+                        {getChallengeIcon(challenge.type, (challenge.config as any)?.category)}
                       </div>
                       {isCompleted && <div className="text-xl sm:text-2xl">✅</div>}
                     </div>
@@ -166,11 +166,11 @@ const Challenges: React.FC = () => {
                     <p className="text-sm sm:text-base text-gray-600 mb-3 sm:mb-4">{challenge.description}</p>
 
                     <div className="flex flex-wrap gap-1 sm:gap-2 mb-3 sm:mb-4">
-                      <Badge variant="outline" className={`text-xs ${getDifficultyColor(challenge.config?.difficulty)}`}>
-                        {challenge.config?.difficulty || 'Easy'}
+                      <Badge variant="outline" className={`text-xs ${getDifficultyColor((challenge.config as any)?.difficulty)}`}>
+                        {(challenge.config as any)?.difficulty || 'Easy'}
                       </Badge>
                       <Badge variant="outline" className="text-xs">
-                        {challenge.config?.category || 'Challenge'}
+                        {(challenge.config as any)?.category || 'Challenge'}
                       </Badge>
                       <Badge variant="outline" className="text-xs">
                         {challenge.type}
@@ -179,7 +179,7 @@ const Challenges: React.FC = () => {
 
                     <div className="text-center mb-3 sm:mb-4">
                       <span className="text-base sm:text-lg font-bold text-[#B8EE7C]">
-                        🌿 {challenge.config?.points || 100} points
+                        🌿 {(challenge.config as any)?.points || 100} points
                       </span>
                     </div>
 
@@ -190,9 +190,9 @@ const Challenges: React.FC = () => {
                       </div>
                     )}
 
-                    {challenge.config?.instructions && (
+                    {(challenge.config as any)?.instructions && (
                       <div className="text-xs text-gray-500 mb-3 sm:mb-4">
-                        <strong>Instructions:</strong> {challenge.config.instructions}
+                        <strong>Instructions:</strong> {(challenge.config as any).instructions}
                       </div>
                     )}
 

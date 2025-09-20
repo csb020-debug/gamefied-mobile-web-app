@@ -75,3 +75,4 @@ Once the tables are created:
 4. Verify all features work as expected
 
 The application should now work completely with Supabase! 🎉
+

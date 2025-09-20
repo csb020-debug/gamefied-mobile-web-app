@@ -37,3 +37,4 @@ WITH CHECK (
     SELECT school_id FROM public.is_user_school_admin(auth.uid())
   )
 );
+

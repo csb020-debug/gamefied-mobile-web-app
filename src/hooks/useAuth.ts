@@ -20,6 +20,7 @@ interface AuthContextType {
   userProfile: UserProfile | null;
   loading: boolean;
   signInWithEmail: (email: string) => Promise<{ error: any }>;
+  signInWithGoogle: () => Promise<{ error: any }>;
   signOut: () => Promise<void>;
   createUserProfile: (email: string, fullName?: string, role?: string, schoolId?: string) => Promise<{ error: any }>;
 }
@@ -112,6 +113,33 @@ export const useAuthState = () => {
     }
   };
 
+  const createDefaultProfile = async (user: User) => {
+    try {
+      console.log('createDefaultProfile: Creating default profile for user:', user.id);
+      
+      if (!config.isConfigured()) {
+        console.error('Supabase not configured - cannot create profile');
+        return;
+      }
+
+      const { error } = await createUserProfile(
+        user.email || '',
+        user.user_metadata?.name || user.user_metadata?.full_name || 'School Administrator',
+        'school_admin'
+      );
+
+      if (error) {
+        console.error('Failed to create default profile:', error);
+      } else {
+        console.log('Default profile created successfully');
+        // Reload the profile
+        await loadUserProfile(user.id);
+      }
+    } catch (error) {
+      console.error('Error creating default profile:', error);
+    }
+  };
+
   const signInWithEmail = async (email: string) => {
     const redirectUrl = `${window.location.origin}/`;
     
@@ -119,6 +147,18 @@ export const useAuthState = () => {
       email,
       options: {
         emailRedirectTo: redirectUrl
+      }
+    });
+    return { error };
+  };
+
+  const signInWithGoogle = async () => {
+    const redirectUrl = `${window.location.origin}/`;
+    
+    const { error } = await supabase.auth.signInWithOAuth({
+      provider: 'google',
+      options: {
+        redirectTo: redirectUrl
       }
     });
     return { error };
@@ -176,6 +216,7 @@ export const useAuthState = () => {
     userProfile,
     loading,
     signInWithEmail,
+    signInWithGoogle,
     signOut,
     createUserProfile
   };

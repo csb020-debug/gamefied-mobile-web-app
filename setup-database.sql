@@ -1,5 +1,11 @@
--- Final comprehensive setup - creates all tables in correct order
--- This migration replaces all previous ones and creates everything needed
+-- EcoQuest Database Setup
+-- Run this in your Supabase SQL Editor
+
+-- Enable necessary extensions
+CREATE EXTENSION IF NOT EXISTS "uuid-ossp";
+
+-- Create all tables in correct dependency order
+-- This migration creates all required tables for the application
 
 -- 1. Create schools table first (no dependencies)
 CREATE TABLE IF NOT EXISTS public.schools (
@@ -120,7 +126,48 @@ ALTER TABLE public.assignments ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.submissions ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.achievement_unlocks ENABLE ROW LEVEL SECURITY;
 
--- RLS policies will be created in a separate migration to avoid conflicts
+-- Create basic RLS policies (simplified to avoid circular references)
+-- Schools policies
+CREATE POLICY "Anyone can view schools" ON public.schools FOR SELECT USING (true);
+CREATE POLICY "Authenticated users can create schools" ON public.schools FOR INSERT WITH CHECK (auth.role() = 'authenticated');
+
+-- User profiles policies
+CREATE POLICY "Users can view their own profile" ON public.user_profiles FOR SELECT USING (auth.uid() = user_id);
+CREATE POLICY "Users can update their own profile" ON public.user_profiles FOR UPDATE USING (auth.uid() = user_id);
+CREATE POLICY "Users can create their own profile" ON public.user_profiles FOR INSERT WITH CHECK (auth.uid() = user_id);
+
+-- School admins policies (simplified)
+CREATE POLICY "School admins can view their own records" ON public.school_admins FOR SELECT USING (auth.uid() = user_id);
+CREATE POLICY "School admins can create their own records" ON public.school_admins FOR INSERT WITH CHECK (auth.uid() = user_id);
+
+-- Teachers policies
+CREATE POLICY "Teachers can view their own record" ON public.teachers FOR SELECT USING (auth.uid() = user_id);
+CREATE POLICY "Teachers can create their own record" ON public.teachers FOR INSERT WITH CHECK (auth.uid() = user_id);
+
+-- Classes policies
+CREATE POLICY "Teachers can view their own classes" ON public.classes FOR SELECT USING (auth.uid() = teacher_id);
+CREATE POLICY "Teachers can create their own classes" ON public.classes FOR INSERT WITH CHECK (auth.uid() = teacher_id);
+CREATE POLICY "Teachers can update their own classes" ON public.classes FOR UPDATE USING (auth.uid() = teacher_id);
+CREATE POLICY "Teachers can delete their own classes" ON public.classes FOR DELETE USING (auth.uid() = teacher_id);
+
+-- Students policies
+CREATE POLICY "Anyone can view students" ON public.students FOR SELECT USING (true);
+CREATE POLICY "Anyone can create students" ON public.students FOR INSERT WITH CHECK (true);
+
+-- Assignments policies
+CREATE POLICY "Anyone can view assignments" ON public.assignments FOR SELECT USING (true);
+CREATE POLICY "Teachers can manage assignments" ON public.assignments FOR ALL USING (
+  class_id IN (SELECT id FROM public.classes WHERE teacher_id = auth.uid())
+);
+
+-- Submissions policies
+CREATE POLICY "Anyone can view submissions" ON public.submissions FOR SELECT USING (true);
+CREATE POLICY "Anyone can create submissions" ON public.submissions FOR INSERT WITH CHECK (true);
+CREATE POLICY "Anyone can update submissions" ON public.submissions FOR UPDATE USING (true);
+
+-- Achievement unlocks policies
+CREATE POLICY "Anyone can view achievement unlocks" ON public.achievement_unlocks FOR SELECT USING (true);
+CREATE POLICY "Anyone can create achievement unlocks" ON public.achievement_unlocks FOR INSERT WITH CHECK (true);
 
 -- Create helper functions
 CREATE OR REPLACE FUNCTION public.update_updated_at_column()
@@ -131,96 +178,51 @@ BEGIN
 END;
 $$ LANGUAGE plpgsql;
 
--- Create triggers for updated_at timestamps (only if they don't exist)
-DO $$ 
-BEGIN
-    IF NOT EXISTS (SELECT 1 FROM pg_trigger WHERE tgname = 'update_schools_updated_at') THEN
-        CREATE TRIGGER update_schools_updated_at
-          BEFORE UPDATE ON public.schools
-          FOR EACH ROW
-          EXECUTE FUNCTION public.update_updated_at_column();
-    END IF;
-END $$;
+-- Create triggers for updated_at timestamps
+CREATE TRIGGER update_schools_updated_at
+  BEFORE UPDATE ON public.schools
+  FOR EACH ROW
+  EXECUTE FUNCTION public.update_updated_at_column();
 
-DO $$ 
-BEGIN
-    IF NOT EXISTS (SELECT 1 FROM pg_trigger WHERE tgname = 'update_user_profiles_updated_at') THEN
-        CREATE TRIGGER update_user_profiles_updated_at
-          BEFORE UPDATE ON public.user_profiles
-          FOR EACH ROW
-          EXECUTE FUNCTION public.update_updated_at_column();
-    END IF;
-END $$;
+CREATE TRIGGER update_user_profiles_updated_at
+  BEFORE UPDATE ON public.user_profiles
+  FOR EACH ROW
+  EXECUTE FUNCTION public.update_updated_at_column();
 
-DO $$ 
-BEGIN
-    IF NOT EXISTS (SELECT 1 FROM pg_trigger WHERE tgname = 'update_school_admins_updated_at') THEN
-        CREATE TRIGGER update_school_admins_updated_at
-          BEFORE UPDATE ON public.school_admins
-          FOR EACH ROW
-          EXECUTE FUNCTION public.update_updated_at_column();
-    END IF;
-END $$;
+CREATE TRIGGER update_school_admins_updated_at
+  BEFORE UPDATE ON public.school_admins
+  FOR EACH ROW
+  EXECUTE FUNCTION public.update_updated_at_column();
 
-DO $$ 
-BEGIN
-    IF NOT EXISTS (SELECT 1 FROM pg_trigger WHERE tgname = 'update_teachers_updated_at') THEN
-        CREATE TRIGGER update_teachers_updated_at
-          BEFORE UPDATE ON public.teachers
-          FOR EACH ROW
-          EXECUTE FUNCTION public.update_updated_at_column();
-    END IF;
-END $$;
+CREATE TRIGGER update_teachers_updated_at
+  BEFORE UPDATE ON public.teachers
+  FOR EACH ROW
+  EXECUTE FUNCTION public.update_updated_at_column();
 
-DO $$ 
-BEGIN
-    IF NOT EXISTS (SELECT 1 FROM pg_trigger WHERE tgname = 'update_classes_updated_at') THEN
-        CREATE TRIGGER update_classes_updated_at
-          BEFORE UPDATE ON public.classes
-          FOR EACH ROW
-          EXECUTE FUNCTION public.update_updated_at_column();
-    END IF;
-END $$;
+CREATE TRIGGER update_classes_updated_at
+  BEFORE UPDATE ON public.classes
+  FOR EACH ROW
+  EXECUTE FUNCTION public.update_updated_at_column();
 
-DO $$ 
-BEGIN
-    IF NOT EXISTS (SELECT 1 FROM pg_trigger WHERE tgname = 'update_students_updated_at') THEN
-        CREATE TRIGGER update_students_updated_at
-          BEFORE UPDATE ON public.students
-          FOR EACH ROW
-          EXECUTE FUNCTION public.update_updated_at_column();
-    END IF;
-END $$;
+CREATE TRIGGER update_students_updated_at
+  BEFORE UPDATE ON public.students
+  FOR EACH ROW
+  EXECUTE FUNCTION public.update_updated_at_column();
 
-DO $$ 
-BEGIN
-    IF NOT EXISTS (SELECT 1 FROM pg_trigger WHERE tgname = 'update_assignments_updated_at') THEN
-        CREATE TRIGGER update_assignments_updated_at
-          BEFORE UPDATE ON public.assignments
-          FOR EACH ROW
-          EXECUTE FUNCTION public.update_updated_at_column();
-    END IF;
-END $$;
+CREATE TRIGGER update_assignments_updated_at
+  BEFORE UPDATE ON public.assignments
+  FOR EACH ROW
+  EXECUTE FUNCTION public.update_updated_at_column();
 
-DO $$ 
-BEGIN
-    IF NOT EXISTS (SELECT 1 FROM pg_trigger WHERE tgname = 'update_submissions_updated_at') THEN
-        CREATE TRIGGER update_submissions_updated_at
-          BEFORE UPDATE ON public.submissions
-          FOR EACH ROW
-          EXECUTE FUNCTION public.update_updated_at_column();
-    END IF;
-END $$;
+CREATE TRIGGER update_submissions_updated_at
+  BEFORE UPDATE ON public.submissions
+  FOR EACH ROW
+  EXECUTE FUNCTION public.update_updated_at_column();
 
-DO $$ 
-BEGIN
-    IF NOT EXISTS (SELECT 1 FROM pg_trigger WHERE tgname = 'update_achievement_unlocks_updated_at') THEN
-        CREATE TRIGGER update_achievement_unlocks_updated_at
-          BEFORE UPDATE ON public.achievement_unlocks
-          FOR EACH ROW
-          EXECUTE FUNCTION public.update_updated_at_column();
-    END IF;
-END $$;
+CREATE TRIGGER update_achievement_unlocks_updated_at
+  BEFORE UPDATE ON public.achievement_unlocks
+  FOR EACH ROW
+  EXECUTE FUNCTION public.update_updated_at_column();
 
 -- Create function to generate unique class codes
 CREATE OR REPLACE FUNCTION public.generate_class_code()
@@ -252,15 +254,10 @@ BEGIN
 END;
 $$ LANGUAGE plpgsql;
 
-DO $$ 
-BEGIN
-    IF NOT EXISTS (SELECT 1 FROM pg_trigger WHERE tgname = 'set_class_code_trigger') THEN
-        CREATE TRIGGER set_class_code_trigger
-          BEFORE INSERT ON public.classes
-          FOR EACH ROW
-          EXECUTE FUNCTION public.set_class_code();
-    END IF;
-END $$;
+CREATE TRIGGER set_class_code_trigger
+  BEFORE INSERT ON public.classes
+  FOR EACH ROW
+  EXECUTE FUNCTION public.set_class_code();
 
 -- Create function to create user profile
 CREATE OR REPLACE FUNCTION public.create_user_profile(
@@ -296,3 +293,5 @@ EXCEPTION
 END;
 $$ LANGUAGE plpgsql;
 
+-- Success message
+SELECT 'Database schema created successfully! 🎉' as message;

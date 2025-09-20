@@ -39,41 +39,29 @@ export class DataService {
 
   static async createUserProfile(profile: Partial<UserProfile>): Promise<UserProfile> {
     try {
-      // Try RPC function first
-      const { data: rpcData, error: rpcError } = await supabase.rpc('create_user_profile', {
-        user_id_param: profile.user_id!,
-        email_param: profile.email!,
-        full_name_param: profile.full_name,
-        role_param: profile.role || 'student',
-        school_id_param: profile.school_id
-      });
+      console.log('DataService.createUserProfile: Creating profile with data:', profile);
+      
+      // Use direct insert (skip RPC for now)
+      const { data, error } = await supabase
+        .from('user_profiles')
+        .insert({
+          user_id: profile.user_id!,
+          email: profile.email!,
+          full_name: profile.full_name,
+          role: profile.role || 'school_admin',
+          school_id: profile.school_id,
+          is_active: true
+        })
+        .select()
+        .single();
 
-      if (rpcError) {
-        // Fallback to direct insert
-        const { data, error } = await supabase
-          .from('user_profiles')
-          .insert({
-            user_id: profile.user_id!,
-            email: profile.email!,
-            full_name: profile.full_name,
-            role: profile.role || 'student',
-            school_id: profile.school_id,
-            is_active: true
-          })
-          .select()
-          .single();
-
-        if (error) throw error;
-        return data;
+      if (error) {
+        console.error('DataService.createUserProfile: Direct insert error:', error);
+        throw error;
       }
-
-      const result = rpcData as any;
-      if (result?.success) {
-        // Reload the profile
-        return await this.getUserProfile(profile.user_id!) as UserProfile;
-      } else {
-        throw new Error(result?.error || 'Failed to create profile');
-      }
+      
+      console.log('DataService.createUserProfile: Profile created successfully:', data);
+      return data;
     } catch (error) {
       console.error('Error creating user profile:', error);
       throw error;

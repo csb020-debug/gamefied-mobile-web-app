@@ -81,7 +81,7 @@ const SchoolDashboard = () => {
           .order('created_at', { ascending: false });
 
         if (invitationsError) throw invitationsError;
-        setInvitations(invitationsData || []);
+        setInvitations((invitationsData || []) as TeacherInvitation[]);
       }
     } catch (error: any) {
       toast({
@@ -108,14 +108,14 @@ const SchoolDashboard = () => {
 
       if (error) throw error;
 
-      if (data.success) {
+      if ((data as any).success) {
         // Send email notification
-        const invitationLink = `${window.location.origin}/teachers/invite/${data.invitation_token}`;
+        const invitationLink = `${window.location.origin}/teachers/invite/${(data as any).invitation_token}`;
         const emailResult = await sendTeacherInvitationEmail({
           teacherEmail: newTeacherEmail.trim(),
           schoolName: schoolInfo.name,
           invitationLink,
-          expiresAt: data.expires_at,
+          expiresAt: (data as any).expires_at,
           invitedBy: user?.email || 'School Administrator'
         });
 
@@ -127,7 +127,7 @@ const SchoolDashboard = () => {
         } else {
           toast({
             title: "Invitation created but email failed",
-            description: `Invitation created but email sending failed: ${emailResult.error}`,
+            description: `Invitation created but email sending failed: ${(emailResult as any).error}`,
             variant: "destructive",
           });
         }
@@ -137,7 +137,7 @@ const SchoolDashboard = () => {
       } else {
         toast({
           title: "Error",
-          description: data.error || 'Failed to send invitation',
+          description: (data as any).error || 'Failed to send invitation',
           variant: "destructive",
         });
       }

@@ -18,7 +18,9 @@ import StudentDashboard from "./pages/StudentDashboard";
 import SchoolsRegister from "./pages/SchoolsRegister";
 import SchoolDashboard from "./pages/SchoolDashboard";
 import SchoolAdminDashboard from "./pages/SchoolAdminDashboard";
+import SchoolAdminSignup from "./pages/SchoolAdminSignup";
 import TeacherInvite from "./pages/TeacherInvite";
+import RoleSelection from "./pages/RoleSelection";
 import NotFound from "./pages/NotFound";
 import StaggeredMenu from "./components/ui/StaggeredMenu";
 import { getMenuItems, socialItems } from "./components/ui/MenuData";
@@ -53,6 +55,8 @@ const AppContent = () => {
         <Route path="/challenges" element={<Challenges />} />
         <Route path="/leaderboard" element={<Leaderboard />} />
         <Route path="/profile" element={<Profile />} />
+        <Route path="/role-selection" element={<RoleSelection />} />
+        <Route path="/school-admin/signup" element={<SchoolAdminSignup />} />
         <Route path="/teachers/signup" element={<TeacherSignup />} />
         <Route path="/schools/register" element={<ProtectedRoute><SchoolsRegister /></ProtectedRoute>} />
         <Route path="/schools/dashboard" element={<ProtectedRoute><SchoolDashboard /></ProtectedRoute>} />

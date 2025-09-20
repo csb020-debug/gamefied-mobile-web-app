@@ -5,6 +5,7 @@ import { Input } from '@/components/ui/input';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { useToast } from '@/hooks/use-toast';
 import { useStudent } from '@/hooks/useStudent';
+import { useAuth } from '@/hooks/useAuth';
 import { supabase } from '@/integrations/supabase/client';
 import { Users, GamepadIcon, Trophy } from 'lucide-react';
 
@@ -14,6 +15,7 @@ const StudentJoin = () => {
   const [loading, setLoading] = useState(false);
   const [manualClassCode, setManualClassCode] = useState('');
   const { joinClass } = useStudent();
+  const { user, createUserProfile } = useAuth();
   const { toast } = useToast();
   const navigate = useNavigate();
 
@@ -25,11 +27,11 @@ const StudentJoin = () => {
 
     setLoading(true);
     
-    // First validate that the class exists
     try {
+      // First validate that the class exists
       const { data: classData, error: classError } = await supabase
         .from('classes')
-        .select('id, name, teacher_id')
+        .select('id, name, teacher_id, school_id')
         .eq('class_code', currentClassCode.toUpperCase())
         .single();
 
@@ -41,6 +43,26 @@ const StudentJoin = () => {
         });
         setLoading(false);
         return;
+      }
+
+      // If user is authenticated, create a user profile first
+      if (user) {
+        const { error: profileError } = await createUserProfile(
+          user.email || '',
+          nickname.trim(),
+          'student',
+          classData.school_id
+        );
+
+        if (profileError) {
+          toast({
+            title: "Error",
+            description: "Failed to create user profile. Please try again.",
+            variant: "destructive",
+          });
+          setLoading(false);
+          return;
+        }
       }
 
       // Then join the class

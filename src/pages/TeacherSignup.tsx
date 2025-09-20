@@ -39,6 +39,11 @@ const TeacherSignup = () => {
     }
   }, [user, pendingInvitation]);
 
+  // If user is already authenticated but doesn't have a profile, show profile form
+  if (user && !showProfileForm) {
+    checkUserProfile();
+  }
+
   const checkUserProfile = async () => {
     if (!user) return;
     

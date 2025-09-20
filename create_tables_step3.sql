@@ -68,3 +68,4 @@ CREATE POLICY "Anyone can update submissions" ON public.submissions FOR UPDATE U
 
 CREATE POLICY "Anyone can view achievement unlocks" ON public.achievement_unlocks FOR SELECT USING (true);
 CREATE POLICY "Anyone can create achievement unlocks" ON public.achievement_unlocks FOR INSERT WITH CHECK (true);
+

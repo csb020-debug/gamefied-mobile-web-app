@@ -30,7 +30,7 @@ const SchoolsRegister = () => {
         description: 'Please sign in first to register a school', 
         variant: 'destructive' 
       });
-      navigate('/teachers/signup');
+      navigate('/role-selection');
       return;
     }
 
@@ -66,7 +66,7 @@ const SchoolsRegister = () => {
         description: `Welcome to ${schoolData.name} as the school administrator` 
       });
       
-      navigate('/school/admin-dashboard');
+      navigate('/schools/admin-dashboard');
     } catch (err: any) {
       toast({ 
         title: 'Error', 
