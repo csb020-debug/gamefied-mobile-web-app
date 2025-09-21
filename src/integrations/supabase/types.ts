@@ -99,7 +99,6 @@ export type Database = {
           name: string
           school_id: string | null
           teacher_id: string
-          teacher_school_id: string | null
           updated_at: string
         }
         Insert: {
@@ -110,7 +109,6 @@ export type Database = {
           name: string
           school_id?: string | null
           teacher_id: string
-          teacher_school_id?: string | null
           updated_at?: string
         }
         Update: {
@@ -121,7 +119,6 @@ export type Database = {
           name?: string
           school_id?: string | null
           teacher_id?: string
-          teacher_school_id?: string | null
           updated_at?: string
         }
         Relationships: [
@@ -132,457 +129,39 @@ export type Database = {
             referencedRelation: "schools"
             referencedColumns: ["id"]
           },
+        ]
+      }
+      school_admins: {
+        Row: {
+          created_at: string
+          id: string
+          permissions: Json | null
+          school_id: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          permissions?: Json | null
+          school_id: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          permissions?: Json | null
+          school_id?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
           {
-            foreignKeyName: "classes_teacher_school_id_fkey"
-            columns: ["teacher_school_id"]
+            foreignKeyName: "school_admins_school_id_fkey"
+            columns: ["school_id"]
             isOneToOne: false
             referencedRelation: "schools"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
-      collaboration_groups: {
-        Row: {
-          class_id: string
-          created_at: string
-          created_by: string
-          description: string | null
-          group_type: string
-          id: string
-          is_active: boolean | null
-          max_members: number | null
-          name: string
-          updated_at: string
-        }
-        Insert: {
-          class_id: string
-          created_at?: string
-          created_by: string
-          description?: string | null
-          group_type: string
-          id?: string
-          is_active?: boolean | null
-          max_members?: number | null
-          name: string
-          updated_at?: string
-        }
-        Update: {
-          class_id?: string
-          created_at?: string
-          created_by?: string
-          description?: string | null
-          group_type?: string
-          id?: string
-          is_active?: boolean | null
-          max_members?: number | null
-          name?: string
-          updated_at?: string
-        }
-        Relationships: [
-          {
-            foreignKeyName: "collaboration_groups_class_id_fkey"
-            columns: ["class_id"]
-            isOneToOne: false
-            referencedRelation: "classes"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
-      content: {
-        Row: {
-          class_id: string
-          content_data: Json | null
-          content_type: string
-          created_at: string
-          description: string | null
-          file_url: string | null
-          id: string
-          is_published: boolean | null
-          teacher_id: string
-          title: string
-          updated_at: string
-        }
-        Insert: {
-          class_id: string
-          content_data?: Json | null
-          content_type: string
-          created_at?: string
-          description?: string | null
-          file_url?: string | null
-          id?: string
-          is_published?: boolean | null
-          teacher_id: string
-          title: string
-          updated_at?: string
-        }
-        Update: {
-          class_id?: string
-          content_data?: Json | null
-          content_type?: string
-          created_at?: string
-          description?: string | null
-          file_url?: string | null
-          id?: string
-          is_published?: boolean | null
-          teacher_id?: string
-          title?: string
-          updated_at?: string
-        }
-        Relationships: [
-          {
-            foreignKeyName: "content_class_id_fkey"
-            columns: ["class_id"]
-            isOneToOne: false
-            referencedRelation: "classes"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
-      content_categories: {
-        Row: {
-          class_id: string
-          color: string | null
-          created_at: string
-          description: string | null
-          id: string
-          name: string
-        }
-        Insert: {
-          class_id: string
-          color?: string | null
-          created_at?: string
-          description?: string | null
-          id?: string
-          name: string
-        }
-        Update: {
-          class_id?: string
-          color?: string | null
-          created_at?: string
-          description?: string | null
-          id?: string
-          name?: string
-        }
-        Relationships: [
-          {
-            foreignKeyName: "content_categories_class_id_fkey"
-            columns: ["class_id"]
-            isOneToOne: false
-            referencedRelation: "classes"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
-      content_category_assignments: {
-        Row: {
-          category_id: string
-          content_id: string
-          created_at: string
-          id: string
-        }
-        Insert: {
-          category_id: string
-          content_id: string
-          created_at?: string
-          id?: string
-        }
-        Update: {
-          category_id?: string
-          content_id?: string
-          created_at?: string
-          id?: string
-        }
-        Relationships: [
-          {
-            foreignKeyName: "content_category_assignments_category_id_fkey"
-            columns: ["category_id"]
-            isOneToOne: false
-            referencedRelation: "content_categories"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "content_category_assignments_content_id_fkey"
-            columns: ["content_id"]
-            isOneToOne: false
-            referencedRelation: "content"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
-      discussion_posts: {
-        Row: {
-          author_id: string
-          author_type: string
-          content: string
-          created_at: string
-          discussion_id: string
-          id: string
-          is_edited: boolean | null
-          parent_post_id: string | null
-          updated_at: string
-        }
-        Insert: {
-          author_id: string
-          author_type: string
-          content: string
-          created_at?: string
-          discussion_id: string
-          id?: string
-          is_edited?: boolean | null
-          parent_post_id?: string | null
-          updated_at?: string
-        }
-        Update: {
-          author_id?: string
-          author_type?: string
-          content?: string
-          created_at?: string
-          discussion_id?: string
-          id?: string
-          is_edited?: boolean | null
-          parent_post_id?: string | null
-          updated_at?: string
-        }
-        Relationships: [
-          {
-            foreignKeyName: "discussion_posts_discussion_id_fkey"
-            columns: ["discussion_id"]
-            isOneToOne: false
-            referencedRelation: "discussions"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "discussion_posts_parent_post_id_fkey"
-            columns: ["parent_post_id"]
-            isOneToOne: false
-            referencedRelation: "discussion_posts"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
-      discussions: {
-        Row: {
-          class_id: string
-          created_at: string
-          created_by: string
-          description: string | null
-          discussion_type: string
-          id: string
-          is_locked: boolean | null
-          is_pinned: boolean | null
-          title: string
-          updated_at: string
-        }
-        Insert: {
-          class_id: string
-          created_at?: string
-          created_by: string
-          description?: string | null
-          discussion_type: string
-          id?: string
-          is_locked?: boolean | null
-          is_pinned?: boolean | null
-          title: string
-          updated_at?: string
-        }
-        Update: {
-          class_id?: string
-          created_at?: string
-          created_by?: string
-          description?: string | null
-          discussion_type?: string
-          id?: string
-          is_locked?: boolean | null
-          is_pinned?: boolean | null
-          title?: string
-          updated_at?: string
-        }
-        Relationships: [
-          {
-            foreignKeyName: "discussions_class_id_fkey"
-            columns: ["class_id"]
-            isOneToOne: false
-            referencedRelation: "classes"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
-      group_activities: {
-        Row: {
-          activity_type: string
-          created_at: string
-          created_by: string
-          description: string | null
-          due_date: string | null
-          group_id: string
-          id: string
-          is_completed: boolean | null
-          title: string
-          updated_at: string
-        }
-        Insert: {
-          activity_type: string
-          created_at?: string
-          created_by: string
-          description?: string | null
-          due_date?: string | null
-          group_id: string
-          id?: string
-          is_completed?: boolean | null
-          title: string
-          updated_at?: string
-        }
-        Update: {
-          activity_type?: string
-          created_at?: string
-          created_by?: string
-          description?: string | null
-          due_date?: string | null
-          group_id?: string
-          id?: string
-          is_completed?: boolean | null
-          title?: string
-          updated_at?: string
-        }
-        Relationships: [
-          {
-            foreignKeyName: "group_activities_group_id_fkey"
-            columns: ["group_id"]
-            isOneToOne: false
-            referencedRelation: "collaboration_groups"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
-      group_memberships: {
-        Row: {
-          group_id: string
-          id: string
-          joined_at: string
-          role: string
-          student_id: string
-        }
-        Insert: {
-          group_id: string
-          id?: string
-          joined_at?: string
-          role?: string
-          student_id: string
-        }
-        Update: {
-          group_id?: string
-          id?: string
-          joined_at?: string
-          role?: string
-          student_id?: string
-        }
-        Relationships: [
-          {
-            foreignKeyName: "group_memberships_group_id_fkey"
-            columns: ["group_id"]
-            isOneToOne: false
-            referencedRelation: "collaboration_groups"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "group_memberships_student_id_fkey"
-            columns: ["student_id"]
-            isOneToOne: false
-            referencedRelation: "students"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
-      notifications: {
-        Row: {
-          created_at: string
-          id: string
-          is_read: boolean | null
-          message: string
-          notification_type: string
-          related_id: string | null
-          title: string
-          user_id: string
-          user_type: string
-        }
-        Insert: {
-          created_at?: string
-          id?: string
-          is_read?: boolean | null
-          message: string
-          notification_type: string
-          related_id?: string | null
-          title: string
-          user_id: string
-          user_type: string
-        }
-        Update: {
-          created_at?: string
-          id?: string
-          is_read?: boolean | null
-          message?: string
-          notification_type?: string
-          related_id?: string | null
-          title?: string
-          user_id?: string
-          user_type?: string
-        }
-        Relationships: []
-      }
-      peer_reviews: {
-        Row: {
-          assignment_id: string
-          content: string
-          created_at: string
-          id: string
-          is_anonymous: boolean | null
-          rating: number | null
-          reviewee_id: string
-          reviewer_id: string
-          updated_at: string
-        }
-        Insert: {
-          assignment_id: string
-          content: string
-          created_at?: string
-          id?: string
-          is_anonymous?: boolean | null
-          rating?: number | null
-          reviewee_id: string
-          reviewer_id: string
-          updated_at?: string
-        }
-        Update: {
-          assignment_id?: string
-          content?: string
-          created_at?: string
-          id?: string
-          is_anonymous?: boolean | null
-          rating?: number | null
-          reviewee_id?: string
-          reviewer_id?: string
-          updated_at?: string
-        }
-        Relationships: [
-          {
-            foreignKeyName: "peer_reviews_assignment_id_fkey"
-            columns: ["assignment_id"]
-            isOneToOne: false
-            referencedRelation: "assignments"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "peer_reviews_reviewee_id_fkey"
-            columns: ["reviewee_id"]
-            isOneToOne: false
-            referencedRelation: "students"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "peer_reviews_reviewer_id_fkey"
-            columns: ["reviewer_id"]
-            isOneToOne: false
-            referencedRelation: "students"
             referencedColumns: ["id"]
           },
         ]
@@ -747,6 +326,91 @@ export type Database = {
           },
         ]
       }
+      teachers: {
+        Row: {
+          created_at: string
+          email: string
+          full_name: string | null
+          id: string
+          is_active: boolean | null
+          school_id: string | null
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          email: string
+          full_name?: string | null
+          id?: string
+          is_active?: boolean | null
+          school_id?: string | null
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          email?: string
+          full_name?: string | null
+          id?: string
+          is_active?: boolean | null
+          school_id?: string | null
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "teachers_school_id_fkey"
+            columns: ["school_id"]
+            isOneToOne: false
+            referencedRelation: "schools"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      user_profiles: {
+        Row: {
+          created_at: string
+          email: string
+          full_name: string | null
+          id: string
+          is_active: boolean | null
+          role: string
+          school_id: string | null
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          email: string
+          full_name?: string | null
+          id?: string
+          is_active?: boolean | null
+          role?: string
+          school_id?: string | null
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          email?: string
+          full_name?: string | null
+          id?: string
+          is_active?: boolean | null
+          role?: string
+          school_id?: string | null
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "user_profiles_school_id_fkey"
+            columns: ["school_id"]
+            isOneToOne: false
+            referencedRelation: "schools"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
     }
     Views: {
       [_ in never]: never
@@ -754,6 +418,16 @@ export type Database = {
     Functions: {
       accept_teacher_invitation: {
         Args: { invitation_token_param: string }
+        Returns: Json
+      }
+      create_user_profile: {
+        Args: {
+          email_param: string
+          full_name_param?: string
+          role_param?: string
+          school_id_param?: string
+          user_id_param: string
+        }
         Returns: Json
       }
       generate_class_code: {

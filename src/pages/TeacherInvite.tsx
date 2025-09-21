@@ -86,13 +86,15 @@ const TeacherInvite = () => {
       if (error) throw error;
 
       if (data.success) {
-        // Create teacher profile with school association
-        const { error: profileError } = await supabase.rpc('create_user_profile', {
-          user_id_param: user.id,
-          email_param: user.email || '',
-          role_param: 'teacher',
-          school_id_param: invitationData.school_id
-        });
+        // Create teacher profile with school association using direct insert
+        const { error: profileError } = await supabase
+          .from('teachers')
+          .insert({
+            user_id: user.id,
+            email: user.email || '',
+            full_name: user.user_metadata?.full_name || '',
+            school_id: invitationData.school_id
+          });
 
         if (profileError) {
           console.error('Error creating teacher profile:', profileError);

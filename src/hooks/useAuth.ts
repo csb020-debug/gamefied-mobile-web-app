@@ -75,20 +75,53 @@ export const useAuthState = () => {
 
   const loadUserProfile = async (userId: string) => {
     try {
-      const { data, error } = await supabase
-        .from('user_profiles')
-        .select('*')
+      // Try to get user profile from existing tables
+      const { data: teacherData } = await supabase
+        .from('teachers')
+        .select('*, schools(name)')
         .eq('user_id', userId)
         .single();
 
-      if (error && error.code !== 'PGRST116') {
-        console.error('Error loading user profile:', error);
+      if (teacherData) {
+        setUserProfile({
+          id: teacherData.id,
+          user_id: teacherData.user_id,
+          email: teacherData.email,
+          full_name: teacherData.full_name,
+          role: 'teacher' as const,
+          school_id: teacherData.school_id,
+          is_active: teacherData.is_active
+        });
         return;
       }
 
-      setUserProfile(data);
+      // Check if user is a school admin
+      const { data: schoolAdminData } = await supabase
+        .from('school_admins')
+        .select('*, schools(name)')
+        .eq('user_id', userId)
+        .single();
+
+      if (schoolAdminData) {
+        // Get user email from auth
+        const { data: { user } } = await supabase.auth.getUser();
+        setUserProfile({
+          id: schoolAdminData.id,
+          user_id: schoolAdminData.user_id,
+          email: user?.email || '',
+          full_name: user?.user_metadata?.full_name || '',
+          role: 'school_admin' as const,
+          school_id: schoolAdminData.school_id,
+          is_active: true
+        });
+        return;
+      }
+
+      // No profile found
+      setUserProfile(null);
     } catch (error) {
       console.error('Error loading user profile:', error);
+      setUserProfile(null);
     }
   };
 
@@ -127,22 +160,32 @@ export const useAuthState = () => {
     }
 
     try {
-      const { data, error } = await supabase.rpc('create_user_profile', {
-        user_id_param: user.id,
-        email_param: email,
-        full_name_param: fullName,
-        role_param: role,
-        school_id_param: schoolId
-      });
+      if (role === 'school_admin') {
+        // Create school admin record
+        const { error } = await supabase
+          .from('school_admins')
+          .insert({
+            user_id: user.id,
+            school_id: schoolId
+          });
 
-      if (error) throw error;
+        if (error) throw error;
+      } else if (role === 'teacher') {
+        // Create teacher record
+        const { error } = await supabase
+          .from('teachers')
+          .insert({
+            user_id: user.id,
+            email: email,
+            full_name: fullName,
+            school_id: schoolId
+          });
 
-      if (data.success) {
-        await loadUserProfile(user.id);
-        return { error: null };
-      } else {
-        return { error: { message: data.error || 'Failed to create profile' } };
+        if (error) throw error;
       }
+
+      await loadUserProfile(user.id);
+      return { error: null };
     } catch (error: any) {
       return { error };
     }
