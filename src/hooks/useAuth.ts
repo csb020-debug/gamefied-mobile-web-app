@@ -18,8 +18,10 @@ interface AuthContextType {
   userProfile: UserProfile | null;
   loading: boolean;
   signInWithEmail: (email: string) => Promise<{ error: any }>;
+  signInWithGoogle: () => Promise<{ error: any }>;
   signOut: () => Promise<void>;
   createUserProfile: (email: string, fullName?: string, role?: string, schoolId?: string) => Promise<{ error: any }>;
+  createSchoolAndAdmin: (schoolData: any, adminData: any) => Promise<{ error: any; schoolId?: string }>;
 }
 
 export const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -102,6 +104,18 @@ export const useAuthState = () => {
     return { error };
   };
 
+  const signInWithGoogle = async () => {
+    const redirectUrl = `${window.location.origin}/`;
+    
+    const { error } = await supabase.auth.signInWithOAuth({
+      provider: 'google',
+      options: {
+        redirectTo: redirectUrl
+      }
+    });
+    return { error };
+  };
+
   const signOut = async () => {
     await supabase.auth.signOut();
     setUserProfile(null);
@@ -134,13 +148,46 @@ export const useAuthState = () => {
     }
   };
 
+  const createSchoolAndAdmin = async (schoolData: any, adminData: any) => {
+    if (!user) {
+      return { error: { message: 'No user logged in' } };
+    }
+
+    try {
+      // Create school first
+      const { data: schoolResult, error: schoolError } = await supabase
+        .from('schools')
+        .insert(schoolData)
+        .select()
+        .single();
+
+      if (schoolError) throw schoolError;
+
+      // Create school admin profile
+      const { error: profileError } = await createUserProfile(
+        user.email || '',
+        adminData.fullName,
+        'school_admin',
+        schoolResult.id
+      );
+
+      if (profileError) throw profileError;
+
+      return { error: null, schoolId: schoolResult.id };
+    } catch (error: any) {
+      return { error };
+    }
+  };
+
   return {
     user,
     session,
     userProfile,
     loading,
     signInWithEmail,
+    signInWithGoogle,
     signOut,
-    createUserProfile
+    createUserProfile,
+    createSchoolAndAdmin
   };
 };

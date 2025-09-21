@@ -21,7 +21,7 @@ interface ProtectedRouteProps {
 }
 
 export const ProtectedRoute: React.FC<ProtectedRouteProps> = ({ children }) => {
-  const { user, loading } = useAuthState();
+  const { user, userProfile, loading } = useAuthState();
 
   if (loading) {
     return (
@@ -35,7 +35,18 @@ export const ProtectedRoute: React.FC<ProtectedRouteProps> = ({ children }) => {
   }
 
   if (!user) {
-    return <Navigate to="/teachers/signup" replace />;
+    return <Navigate to="/schools/register" replace />;
+  }
+
+  // Redirect based on user role
+  if (userProfile) {
+    if (userProfile.role === 'school_admin') {
+      return <Navigate to="/schools/admin-dashboard" replace />;
+    } else if (userProfile.role === 'teacher') {
+      return <Navigate to="/teacher/dashboard" replace />;
+    } else if (userProfile.role === 'student') {
+      return <Navigate to="/student/dashboard" replace />;
+    }
   }
 
   return <>{children}</>;

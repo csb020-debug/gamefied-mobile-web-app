@@ -53,8 +53,7 @@ const App = () => (
             <Route path="/leaderboard" element={<Leaderboard />} />
             <Route path="/profile" element={<Profile />} />
             <Route path="/teachers/signup" element={<TeacherSignup />} />
-            <Route path="/schools/register" element={<ProtectedRoute><SchoolsRegister /></ProtectedRoute>} />
-            <Route path="/schools/dashboard" element={<ProtectedRoute><SchoolDashboard /></ProtectedRoute>} />
+            <Route path="/schools/register" element={<SchoolsRegister />} />
             <Route path="/schools/admin-dashboard" element={<RoleProtectedRoute allowedRoles={['school_admin']}><SchoolAdminDashboard /></RoleProtectedRoute>} />
             <Route path="/teachers/invite/:token" element={<TeacherInvite />} />
             <Route path="/join/:class_code?" element={<StudentJoin />} />
