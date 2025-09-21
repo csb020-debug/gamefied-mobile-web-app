@@ -306,6 +306,24 @@
   padding-right: 1.2em;
 }
 
+/* Logout button specific styling */
+button.sm-panel-item,
+.sm-logout-button {
+  font-family: inherit;
+  text-align: left;
+  width: 100%;
+  cursor: pointer !important;
+  pointer-events: auto !important;
+  z-index: 10;
+  position: relative;
+}
+
+button.sm-panel-item:focus,
+.sm-logout-button:focus {
+  outline: 2px solid var(--sm-accent, #5227ff);
+  outline-offset: 2px;
+}
+
 @media (min-width: 640px) {
   .sm-panel-item {
     font-size: clamp(1.75rem, 4.5vw, 3rem);
@@ -338,7 +356,9 @@
   transform-origin: 50% 100%;
 }
 
-.sm-panel-item:hover {
+.sm-panel-item:hover,
+button.sm-panel-item:hover,
+.sm-logout-button:hover {
   color: var(--sm-accent, #5227ff);
 }
 

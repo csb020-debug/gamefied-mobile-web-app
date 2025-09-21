@@ -50,30 +50,27 @@ const SchoolAdminDashboard = () => {
   }, [user, userProfile]);
 
   const loadSchoolData = async () => {
-    if (!user) return;
+    if (!user || !userProfile?.school_id) return;
     
     setLoading(true);
     try {
-      // Get school admin data with school info  
-      const { data: schoolAdminData, error: schoolAdminError } = await supabase
-        .from('school_admins')
-        .select(`
-          *,
-          schools(*)
-        `)
-        .eq('user_id', user.id)
+      // Get school info from user profile
+      const { data: schoolData, error: schoolError } = await supabase
+        .from('schools')
+        .select('*')
+        .eq('id', userProfile.school_id)
         .single();
 
-      if (schoolAdminError) throw schoolAdminError;
+      if (schoolError) throw schoolError;
       
-      if (schoolAdminData?.schools) {
-        setSchoolInfo(schoolAdminData.schools);
+      if (schoolData) {
+        setSchoolInfo(schoolData);
 
         // Get invitations for this school
         const { data: invitationData, error: invitationError } = await supabase
           .from('teacher_invitations')
           .select('*')
-          .eq('school_id', schoolAdminData.schools.id)
+          .eq('school_id', schoolData.id)
           .order('created_at', { ascending: false });
 
         if (invitationError) throw invitationError;
@@ -83,11 +80,12 @@ const SchoolAdminDashboard = () => {
           status: inv.status as 'pending' | 'accepted' | 'cancelled' | 'expired'
         })) || []);
 
-        // Get teachers for this school
+        // Get teachers for this school using user_profiles
         const { data: teachersData, error: teachersError } = await supabase
-          .from('teachers')
+          .from('user_profiles')
           .select('*')
-          .eq('school_id', schoolAdminData.schools.id);
+          .eq('school_id', schoolData.id)
+          .eq('role', 'teacher');
 
         if (teachersError) throw teachersError;
         setTeachers(teachersData || []);

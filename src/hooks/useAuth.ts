@@ -2,15 +2,16 @@ import { useState, useEffect, createContext, useContext } from 'react';
 import { User, Session } from '@supabase/supabase-js';
 import { supabase } from '@/integrations/supabase/client';
 
-interface UserProfile {
+type UserProfile = {
   id: string;
   user_id: string;
   email: string;
   full_name?: string;
-  role: 'school_admin' | 'teacher' | 'student';
+  role: string;
   school_id?: string;
-  is_active: boolean;
-}
+  created_at: string;
+  updated_at: string;
+};
 
 interface AuthContextType {
   user: User | null;
@@ -75,50 +76,24 @@ export const useAuthState = () => {
 
   const loadUserProfile = async (userId: string) => {
     try {
-      // Try to get user profile from existing tables
-      const { data: teacherData } = await supabase
-        .from('teachers')
-        .select('*, schools(name)')
+      // Get user profile from user_profiles table
+      const { data: profileData, error } = await supabase
+        .from('user_profiles')
+        .select('*')
         .eq('user_id', userId)
         .single();
 
-      if (teacherData) {
-        setUserProfile({
-          id: teacherData.id,
-          user_id: teacherData.user_id,
-          email: teacherData.email,
-          full_name: teacherData.full_name,
-          role: 'teacher' as const,
-          school_id: teacherData.school_id,
-          is_active: teacherData.is_active
-        });
+      if (error && error.code !== 'PGRST116') {
+        console.error('Error loading user profile:', error);
+        setUserProfile(null);
         return;
       }
 
-      // Check if user is a school admin
-      const { data: schoolAdminData } = await supabase
-        .from('school_admins')
-        .select('*, schools(name)')
-        .eq('user_id', userId)
-        .single();
-
-      if (schoolAdminData) {
-        // Get user email from auth
-        const { data: { user } } = await supabase.auth.getUser();
-        setUserProfile({
-          id: schoolAdminData.id,
-          user_id: schoolAdminData.user_id,
-          email: user?.email || '',
-          full_name: user?.user_metadata?.full_name || '',
-          role: 'school_admin' as const,
-          school_id: schoolAdminData.school_id,
-          is_active: true
-        });
-        return;
+      if (profileData) {
+        setUserProfile(profileData);
+      } else {
+        setUserProfile(null);
       }
-
-      // No profile found
-      setUserProfile(null);
     } catch (error) {
       console.error('Error loading user profile:', error);
       setUserProfile(null);
@@ -138,20 +113,51 @@ export const useAuthState = () => {
   };
 
   const signInWithGoogle = async () => {
+    console.log('Starting Google sign-in process...');
     const redirectUrl = `${window.location.origin}/`;
+    console.log('Redirect URL:', redirectUrl);
     
-    const { error } = await supabase.auth.signInWithOAuth({
-      provider: 'google',
-      options: {
-        redirectTo: redirectUrl
+    try {
+      const { data, error } = await supabase.auth.signInWithOAuth({
+        provider: 'google',
+        options: {
+          redirectTo: redirectUrl
+        }
+      });
+      
+      console.log('Google sign-in response:', { data, error });
+      
+      if (error) {
+        console.error('Google sign-in error:', error);
       }
-    });
-    return { error };
+      
+      return { error };
+    } catch (err) {
+      console.error('Google sign-in exception:', err);
+      return { error: err };
+    }
   };
 
   const signOut = async () => {
-    await supabase.auth.signOut();
-    setUserProfile(null);
+    console.log('=== AUTH HOOK signOut called ===');
+    try {
+      console.log('Calling supabase.auth.signOut()');
+      const { error } = await supabase.auth.signOut();
+      
+      if (error) {
+        console.error('Supabase signOut error:', error);
+        throw error;
+      }
+      
+      console.log('Supabase signOut successful, clearing user profile');
+      setUserProfile(null);
+      console.log('=== AUTH HOOK signOut completed ===');
+    } catch (error) {
+      console.error('=== AUTH HOOK signOut failed ===', error);
+      // Still clear the local state even if Supabase fails
+      setUserProfile(null);
+      throw error;
+    }
   };
 
   const createUserProfile = async (email: string, fullName?: string, role: string = 'teacher', schoolId?: string) => {
@@ -160,28 +166,21 @@ export const useAuthState = () => {
     }
 
     try {
-      if (role === 'school_admin') {
-        // Create school admin record
-        const { error } = await supabase
-          .from('school_admins')
-          .insert({
-            user_id: user.id,
-            school_id: schoolId
-          });
+      // Use the database function to create user profile
+      const { data, error } = await supabase.rpc('create_user_profile', {
+        user_id_param: user.id,
+        email_param: email,
+        full_name_param: fullName,
+        role_param: role,
+        school_id_param: schoolId
+      });
 
-        if (error) throw error;
-      } else if (role === 'teacher') {
-        // Create teacher record
-        const { error } = await supabase
-          .from('teachers')
-          .insert({
-            user_id: user.id,
-            email: email,
-            full_name: fullName,
-            school_id: schoolId
-          });
-
-        if (error) throw error;
+      if (error) throw error;
+      
+      // Check if the response indicates success
+      if (data && typeof data === 'object' && 'success' in data && !data.success) {
+        const errorMessage = 'error' in data && typeof data.error === 'string' ? data.error : 'Unknown error';
+        throw new Error(errorMessage);
       }
 
       await loadUserProfile(user.id);
@@ -206,7 +205,7 @@ export const useAuthState = () => {
 
       if (schoolError) throw schoolError;
 
-      // Create school admin profile
+      // Create school admin profile using the database function
       const { error: profileError } = await createUserProfile(
         user.email || '',
         adminData.fullName,

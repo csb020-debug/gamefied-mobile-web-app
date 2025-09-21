@@ -38,12 +38,7 @@ interface Assignment {
   type: string;
   due_at: string | null;
   created_at: string;
-  config: {
-    points: number;
-    instructions: string;
-    difficulty: string;
-    category: string;
-  };
+  config: any; // Use any for JSON type from database
 }
 
 const TeacherDashboard = () => {
@@ -119,6 +114,26 @@ const TeacherDashboard = () => {
     if (!user?.email) return;
     
     try {
+      // First check if user has a profile with school_id
+      const { data: profileData, error: profileError } = await supabase
+        .from('user_profiles')
+        .select('school_id, schools(name)')
+        .eq('user_id', user.id)
+        .eq('role', 'teacher')
+        .single();
+
+      if (profileError && profileError.code !== 'PGRST116') throw profileError; // PGRST116 = no rows found
+      
+      if (profileData && profileData.school_id) {
+        setSchoolId(profileData.school_id);
+        toast({
+          title: "School Association",
+          description: `You're associated with ${profileData.schools?.name || 'your school'}`,
+        });
+        return;
+      }
+
+      // If no profile school_id, check teacher invitations as fallback
       const { data, error } = await supabase
         .from('teacher_invitations')
         .select('school_id, schools(name)')
@@ -480,10 +495,13 @@ const TeacherDashboard = () => {
                                 classId={selectedClass.id} 
                                 onChallengeCreated={() => fetchAssignments(selectedClass.id)} 
                               />
-                              <QuizBuilder 
+                              {/* <QuizBuilder 
                                 classId={selectedClass.id} 
                                 onQuizCreated={() => fetchAssignments(selectedClass.id)} 
-                              />
+                              /> */}
+                              <div className="text-xs text-muted-foreground">
+                                Quiz Builder coming soon
+                              </div>
                             </div>
                           </div>
                         </CardHeader>
@@ -586,19 +604,27 @@ const TeacherDashboard = () => {
             )}
 
             {activeTab === 'content' && selectedClass && (
-              <ContentManager classId={selectedClass.id} className={selectedClass.name} />
+              <div className="p-4 text-center text-muted-foreground">
+                Content Manager coming soon
+              </div>
             )}
 
             {activeTab === 'discussions' && selectedClass && (
-              <ClassDiscussions classId={selectedClass.id} className={selectedClass.name} />
+              <div className="p-4 text-center text-muted-foreground">
+                Class Discussions coming soon
+              </div>
             )}
 
             {activeTab === 'collaboration' && selectedClass && (
-              <CollaborationGroups classId={selectedClass.id} className={selectedClass.name} />
+              <div className="p-4 text-center text-muted-foreground">
+                Collaboration Groups coming soon
+              </div>
             )}
 
             {activeTab === 'reviews' && selectedClass && (
-              <PeerReviewSystem classId={selectedClass.id} className={selectedClass.name} />
+              <div className="p-4 text-center text-muted-foreground">
+                Peer Review System coming soon
+              </div>
             )}
           </div>
         ) : (

@@ -2,6 +2,9 @@ import React, { useCallback, useLayoutEffect, useRef, useState } from 'react';
 import { gsap } from 'gsap';
 import './StaggeredMenu.css';
 import AnimatedThemeToggler from '@/components/magicui/animated-theme-toggler';
+import { useAuth } from '@/hooks/useAuth';
+import { LogOut, User } from 'lucide-react';
+import { supabase } from '@/integrations/supabase/client';
 
 export interface StaggeredMenuItem {
   label: string;
@@ -47,6 +50,8 @@ export const StaggeredMenu: React.FC<StaggeredMenuProps> = ({
   onMenuOpen,
   onMenuClose
 }: StaggeredMenuProps) => {
+  const [logoutClicked, setLogoutClicked] = useState(false);
+  const { user, signOut } = useAuth();
   const [open, setOpen] = useState(false);
   const openRef = useRef(false);
   const panelRef = useRef<HTMLDivElement | null>(null);
@@ -329,6 +334,80 @@ export const StaggeredMenu: React.FC<StaggeredMenuProps> = ({
     });
   }, []);
 
+  const handleLogout = async (e?: React.MouseEvent) => {
+    e?.preventDefault();
+    e?.stopPropagation();
+    
+    console.log('=== LOGOUT BUTTON CLICKED - START ===');
+    console.log('Event object:', e);
+    console.log('User state:', user);
+    console.log('SignOut function type:', typeof signOut);
+    
+    // Set visual feedback immediately
+    setLogoutClicked(true);
+    
+    try {
+      console.log('Step 1: Closing menu...');
+      setOpen(false);
+      openRef.current = false;
+      
+      console.log('Step 2: Starting logout process...');
+      
+      // Try direct Supabase logout first with short timeout
+      console.log('Step 2a: Attempting direct Supabase logout...');
+      const directLogoutPromise = supabase.auth.signOut();
+      const timeoutPromise = new Promise((_, reject) => 
+        setTimeout(() => reject(new Error('Direct logout timeout')), 2000)
+      );
+      
+      try {
+        await Promise.race([directLogoutPromise, timeoutPromise]);
+        console.log('Step 2b: Direct Supabase logout successful');
+      } catch (directError) {
+        console.warn('Step 2c: Direct logout failed:', directError);
+        console.log('Step 2d: Proceeding with local cleanup...');
+      }
+      
+      console.log('Step 3: Clearing local storage and session...');
+      // Clear any stored auth tokens
+      localStorage.removeItem('supabase.auth.token');
+      localStorage.removeItem('sb-' + 'myovnlxheufjmmgehczu' + '-auth-token');
+      sessionStorage.clear();
+      
+      console.log('Step 4: Logout completed successfully');
+      
+    } catch (error) {
+      console.error('Step X: Logout error:', error);
+      console.error('Error details:', {
+        message: error?.message,
+        name: error?.name,
+        stack: error?.stack
+      });
+    } finally {
+      console.log('Step 5: Redirecting to home...');
+      // Always redirect regardless of signOut success/failure
+      setTimeout(() => {
+        console.log('Executing redirect...');
+        window.location.href = '/';
+      }, 100);
+      console.log('=== LOGOUT BUTTON CLICKED - END ===');
+    }
+  };
+
+  // Create enhanced menu items that include logout for authenticated users
+  const enhancedItems = React.useMemo(() => {
+    if (!user) return items;
+    
+    return [
+      ...items,
+      {
+        label: 'Logout',
+        ariaLabel: 'Sign out of your account',
+        link: '#logout'
+      }
+    ];
+  }, [items, user]);
+
   const toggleMenu = useCallback(() => {
     const target = !openRef.current;
     openRef.current = target;
@@ -373,6 +452,14 @@ export const StaggeredMenu: React.FC<StaggeredMenuProps> = ({
           </h1>
         </div>
         <div className="flex items-center gap-3">
+          {user && (
+            <div className="flex items-center gap-2 text-foreground">
+              <User className="h-4 w-4" />
+              <span className="text-sm font-medium hidden sm:inline">
+                {user.email}
+              </span>
+            </div>
+          )}
           <AnimatedThemeToggler className="h-6 w-6 text-foreground" />
           <button
           ref={toggleBtnRef}
@@ -403,25 +490,53 @@ export const StaggeredMenu: React.FC<StaggeredMenuProps> = ({
       <aside id="staggered-menu-panel" ref={panelRef} className="staggered-menu-panel" aria-hidden={!open}>
         <div className="sm-panel-inner">
           <ul className="sm-panel-list" role="list" data-numbering={displayItemNumbering || undefined}>
-            {items && items.length ? (
-              items.map((it, idx) => (
+            {enhancedItems && enhancedItems.length ? (
+              enhancedItems.map((it, idx) => (
                 <li className="sm-panel-itemWrap" key={it.label + idx}>
-                  <a 
-                    className="sm-panel-item" 
-                    href={it.link} 
-                    aria-label={it.ariaLabel} 
-                    data-index={idx + 1}
-                    onClick={(e) => {
-                      // For React Router navigation, we'll use window.location
-                      // This ensures navigation works properly
-                      if (it.link.startsWith('/')) {
-                        e.preventDefault();
-                        window.location.href = it.link;
-                      }
-                    }}
-                  >
-                    <span className="sm-panel-itemLabel">{it.label}</span>
-                  </a>
+                  {it.link === '#logout' ? (
+                    <div 
+                      className="sm-panel-item sm-logout-button cursor-pointer" 
+                      role="button"
+                      tabIndex={0}
+                      aria-label={it.ariaLabel} 
+                      data-index={idx + 1}
+                      onClick={handleLogout}
+                      onKeyDown={(e) => {
+                        if (e.key === 'Enter' || e.key === ' ') {
+                          e.preventDefault();
+                          handleLogout(e as any);
+                        }
+                      }}
+                      style={{ 
+                        cursor: 'pointer',
+                        pointerEvents: 'auto',
+                        zIndex: 9999,
+                        userSelect: 'none'
+                      }}
+                    >
+                      <span className="sm-panel-itemLabel flex items-center gap-3">
+                        {logoutClicked ? 'Logging out...' : it.label}
+                        <LogOut className="h-6 w-6" />
+                      </span>
+                    </div>
+                  ) : (
+                    <a 
+                      className="sm-panel-item" 
+                      href={it.link} 
+                      aria-label={it.ariaLabel} 
+                      data-index={idx + 1}
+                      onClick={(e) => {
+                        // For React Router navigation, we'll use window.location
+                        // This ensures navigation works properly
+                        if (it.link.startsWith('/')) {
+                          e.preventDefault();
+                          window.location.href = it.link;
+                        }
+                      }}
+                    >
+                      <span className="sm-panel-itemLabel">{it.label}</span>
+                    </a>
+                  )}
                 </li>
               ))
             ) : (
