@@ -5,7 +5,7 @@ export const NoMoreStuck: React.FC = () => {
     <div className="self-center flex w-full max-w-7xl mx-auto flex-col items-center pt-8 sm:pt-10 lg:pt-12 pb-16 sm:pb-20 lg:pb-24 px-4 sm:px-6 lg:px-8">
       <div className="flex min-h-[400px] sm:min-h-[500px] lg:min-h-[663px] w-full items-center gap-6 sm:gap-8 lg:gap-12 xl:gap-16 justify-center flex-col lg:flex-row">
         <div className="self-stretch flex min-w-0 flex-col items-stretch justify-center w-full lg:w-1/2 max-w-2xl lg:max-w-none my-auto">
-          <div className="w-full text-black text-center lg:text-left">
+          <div className="w-full text-black dark:text-white text-center lg:text-left">
             <h2 className="text-2xl xs:text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-black leading-tight tracking-tight uppercase">
               become an eco champion.
             </h2>

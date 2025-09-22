@@ -4,7 +4,7 @@ import React from "react";
 export const StudySmarter: React.FC = () => {
   return (
     <div className="bg-background flex w-full flex-col items-center pt-8 sm:pt-10 lg:pt-12 pb-16 sm:pb-20 lg:pb-24 px-4 sm:px-6 lg:px-8">
-      <div className="flex w-full max-w-4xl flex-col items-stretch text-[#0a0e09] text-center py-3">
+      <div className="flex w-full max-w-4xl flex-col items-stretch text-[#0a0e09] dark:text-white text-center py-3">
         <h2 className="text-2xl xs:text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-black leading-tight self-center">
           HOW THEY'RE SAVING THE PLANET
         </h2>

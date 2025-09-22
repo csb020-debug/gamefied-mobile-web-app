@@ -93,7 +93,7 @@ export const Features: React.FC = () => {
 
   return (
     <div className="self-center flex w-full flex-col items-center pt-4 pb-12 sm:pb-16 lg:pb-20 px-4 sm:px-6 lg:px-8">
-      <div className="w-full max-w-4xl text-2xl xs:text-3xl sm:text-4xl md:text-5xl lg:text-6xl text-[#0a0e09] font-black text-center leading-tight py-3">
+      <div className="w-full max-w-4xl text-2xl xs:text-3xl sm:text-4xl md:text-5xl lg:text-6xl text-[#0a0e09] dark:text-white font-black text-center leading-tight py-3">
         SAVING THE PLANET SHOULDN'T FEEL OVERWHELMING.
       </div>
       
