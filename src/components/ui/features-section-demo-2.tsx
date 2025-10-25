@@ -4,7 +4,7 @@ import {
   IconCloud,
   IconCurrencyDollar,
   IconEaseInOut,
-  IconHeart,
+  IconStar,
   IconHelp,
   IconRouteAltLeft,
   IconTerminal2,
@@ -55,7 +55,7 @@ export default function FeaturesSectionDemo() {
     {
       title: "And everything else",
       description: "I just ran out of copy ideas. Accept my sincere apologies",
-      icon: <IconHeart />,
+      icon: <IconStar />,
     },
   ];
   return (

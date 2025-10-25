@@ -1,22 +1,21 @@
-# Welcome to your Lovable project
+# EcoQuest - Gamified Environmental Learning Platform
 
-## Project info
+## Project Overview
 
-**URL**: https://lovable.dev/projects/541b13e4-8994-4ad2-aa3d-745d736815db
+EcoQuest is a comprehensive gamified mobile web application designed to make environmental education engaging and interactive for students. The platform combines learning modules, challenges, games, and social features to create an immersive educational experience.
 
-## How can I edit this code?
+## Features
 
-There are several ways of editing your application.
+- **Interactive Learning Modules**: Comprehensive environmental lessons with multimedia content
+- **Gamification**: Points, achievements, and progress tracking
+- **Social Features**: Leaderboards, challenges, and peer interaction
+- **Multi-role Support**: Students, teachers, and school administrators
+- **Real-time Analytics**: Track learning progress and engagement
+- **Mobile-First Design**: Optimized for mobile devices with responsive design
 
-**Use Lovable**
+## Getting Started
 
-Simply visit the [Lovable Project](https://lovable.dev/projects/541b13e4-8994-4ad2-aa3d-745d736815db) and start prompting.
-
-Changes made via Lovable will be committed automatically to this repo.
-
-**Use your preferred IDE**
-
-If you want to work locally using your own IDE, you can clone this repo and push changes. Pushed changes will also be reflected in Lovable.
+To run this project locally, follow these steps:
 
 The only requirement is having Node.js & npm installed - [install with nvm](https://github.com/nvm-sh/nvm#installing-and-updating)
 
@@ -107,14 +106,19 @@ npm run supabase:types
 
 Environment variables are used to configure the Supabase client; keys are not hardcoded.
 
-## How can I deploy this project?
+## Deployment
 
-Simply open [Lovable](https://lovable.dev/projects/541b13e4-8994-4ad2-aa3d-745d736815db) and click on Share -> Publish.
+This project can be deployed to any static hosting service such as:
 
-## Can I connect a custom domain to my Lovable project?
+- **Vercel**: Connect your GitHub repository and deploy automatically
+- **Netlify**: Drag and drop the `dist` folder or connect via Git
+- **GitHub Pages**: Enable GitHub Pages in repository settings
+- **Firebase Hosting**: Use Firebase CLI to deploy
 
-Yes, you can!
+## Contributing
 
-To connect a domain, navigate to Project > Settings > Domains and click Connect Domain.
-
-Read more here: [Setting up a custom domain](https://docs.lovable.dev/tips-tricks/custom-domain#step-by-step-guide)
+1. Fork the repository
+2. Create a feature branch (`git checkout -b feature/amazing-feature`)
+3. Commit your changes (`git commit -m 'Add some amazing feature'`)
+4. Push to the branch (`git push origin feature/amazing-feature`)
+5. Open a Pull Request
